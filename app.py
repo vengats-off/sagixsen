@@ -346,7 +346,9 @@ def homepage():
 @app.route('/sentiment')
 def sentiment_page():
     return render_template('sentiment.html')
-
+@app.route('/news')
+def sentiment_page():
+    return render_template('news.html')
 # Static file routes
 @app.route('/companies.js')
 def serve_companies_js():
