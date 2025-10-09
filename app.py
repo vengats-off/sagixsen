@@ -362,9 +362,18 @@ def serve_sentiment_app_js():
 def serve_sentiment_css():
     return send_from_directory('static/css', 'sentiment-style.css')
 
+@app.route('/news-app.js')
+def serve_news_app_js():
+    return send_from_directory('static/js', 'news-app.js')
+
+@app.route('/news-style.css')
+def serve_news_css():
+    return send_from_directory('static/css', 'news-style.css')
 @app.route('/logo.png')
 def serve_logo():
     return send_from_directory('.', 'logo.png')
+
+
 
 # MAIN API ROUTE - HYBRID APPROACH
 @app.route('/api/news', methods=['GET'])
