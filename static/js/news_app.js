@@ -1,11 +1,13 @@
-// News Simplifier Frontend - Flask Integration
-// Connects to Flask backend for real-time news fetching and simplification
+// News Simplifier Frontend - For Unified Backend Deployment
+// All APIs on same domain/port now!
 
-// Configuration
-const API_BASE_URL = 'http://localhost:5000';  // Change this to your production URL
+// Configuration - Single API URL since everything runs together
+const API_BASE_URL = window.location.origin;  // Uses current domain
+
 let currentSimplificationLevel = 'basic';
 let isSearching = false;
 let currentSearchQuery = '';
+let currentArticles = [];
 
 // DOM Elements
 const elements = {
@@ -21,15 +23,16 @@ const elements = {
     articleModal: null
 };
 
-// Initialize Application
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 News Simplifier initializing...');
     initializeElements();
     setupEventListeners();
     loadTrendingTopics();
     updateCharCounter();
+    console.log('✅ Initialization complete');
 });
 
-// Initialize DOM elements
 function initializeElements() {
     elements.newsSearchInput = document.getElementById('newsSearchInput');
     elements.customText = document.getElementById('customText');
@@ -43,23 +46,17 @@ function initializeElements() {
     elements.articleModal = document.getElementById('articleModal');
 }
 
-// Setup Event Listeners
 function setupEventListeners() {
-    // Search input enter key
     if (elements.newsSearchInput) {
         elements.newsSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                searchNews();
-            }
+            if (e.key === 'Enter') searchNews();
         });
     }
     
-    // Custom text character counter
     if (elements.customText) {
         elements.customText.addEventListener('input', updateCharCounter);
     }
     
-    // Simplification level buttons
     document.querySelectorAll('.level-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
@@ -69,41 +66,26 @@ function setupEventListeners() {
     });
 }
 
-// Tab Switching Functions
+// Tab Switching
 function switchTab(tabName) {
-    // Hide all tab contents
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
     
-    // Remove active class from all nav tabs
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Show selected tab
     const selectedTab = document.getElementById(tabName + 'Tab');
-    if (selectedTab) {
-        selectedTab.classList.add('active');
-    }
+    if (selectedTab) selectedTab.classList.add('active');
     
-    // Add active class to clicked nav tab
     event.target.classList.add('active');
 }
 
-// Character Counter for Custom Text
+// Character Counter
 function updateCharCounter() {
     if (elements.customText && elements.customCharCount) {
         const count = elements.customText.value.length;
         elements.customCharCount.textContent = count;
         
-        if (count > 10000) {
-            elements.customCharCount.style.color = 'var(--color-error)';
-        } else if (count > 9000) {
-            elements.customCharCount.style.color = 'var(--color-warning)';
-        } else {
-            elements.customCharCount.style.color = 'var(--color-text-muted)';
-        }
+        if (count > 10000) elements.customCharCount.style.color = 'var(--color-error)';
+        else if (count > 9000) elements.customCharCount.style.color = 'var(--color-warning)';
+        else elements.customCharCount.style.color = 'var(--color-text-muted)';
     }
 }
 
@@ -114,9 +96,9 @@ async function loadTrendingTopics() {
         const data = await response.json();
         
         if (data.trending_topics) {
-            const trendingContainer = document.getElementById('trendingTopics');
-            if (trendingContainer) {
-                trendingContainer.innerHTML = data.trending_topics.slice(0, 8).map(topic => 
+            const container = document.getElementById('trendingTopics');
+            if (container) {
+                container.innerHTML = data.trending_topics.map(topic => 
                     `<button class="trending-item" onclick="searchTrendingTopic('${topic}')">${topic}</button>`
                 ).join('');
             }
@@ -126,7 +108,15 @@ async function loadTrendingTopics() {
     }
 }
 
-// Search News Function
+// Search Trending Topic
+function searchTrendingTopic(topic) {
+    if (elements.newsSearchInput) {
+        elements.newsSearchInput.value = topic;
+        searchNews();
+    }
+}
+
+// Main Search Function
 async function searchNews() {
     if (isSearching) return;
     
@@ -136,40 +126,35 @@ async function searchNews() {
         return;
     }
     
+    console.log('🔍 Searching for:', query);
     currentSearchQuery = query;
     isSearching = true;
-    showLoadingOverlay(true, 'Fetching Latest News...', 'Searching financial news sources and analyzing content...');
+    showLoadingOverlay(true, 'Fetching & Simplifying News...', 'Please wait...');
     
     try {
-        // Simulate progress
-        await simulateSearchProgress();
-        
         const response = await fetch(`${API_BASE_URL}/api/search-news`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 query: query,
-                level: currentSimplificationLevel
+                level: currentSimplificationLevel,
+                date_range: '1d'
             })
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to fetch news');
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const data = await response.json();
+        console.log('📰 Received data:', data);
         
-        if (data.error) {
-            throw new Error(data.error);
-        }
+        if (data.error) throw new Error(data.error);
         
+        currentArticles = data.articles || [];
         displayNewsResults(data);
         showToast(`Found ${data.total_found} articles`, 'success');
         
     } catch (error) {
-        console.error('Search error:', error);
+        console.error('❌ Search error:', error);
         showToast('Failed to fetch news. Please try again.', 'error');
         displayNoResults();
     } finally {
@@ -178,113 +163,68 @@ async function searchNews() {
     }
 }
 
-// Search Trending Topic
-function searchTrendingTopic(topic) {
-    elements.newsSearchInput.value = topic;
-    searchNews();
-}
-
-// Simulate Search Progress
-function simulateSearchProgress() {
-    return new Promise((resolve) => {
-        let progress = 0;
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        const loadingDescription = document.getElementById('loadingDescription');
-        
-        const steps = [
-            { progress: 25, message: 'Searching news sources...' },
-            { progress: 50, message: 'Analyzing financial content...' },
-            { progress: 75, message: 'Simplifying complex terms...' },
-            { progress: 100, message: 'Finalizing results...' }
-        ];
-        
-        let stepIndex = 0;
-        
-        const interval = setInterval(() => {
-            if (stepIndex < steps.length) {
-                const step = steps[stepIndex];
-                progress = step.progress;
-                
-                if (progressFill) progressFill.style.width = `${progress}%`;
-                if (progressText) progressText.textContent = `${progress}%`;
-                if (loadingDescription) loadingDescription.textContent = step.message;
-                
-                stepIndex++;
-            }
-            
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(resolve, 500);
-            }
-        }, 800);
-    });
-}
-
-// Display News Results
+// Display Results
 function displayNewsResults(data) {
     if (!elements.newsResults || !elements.articlesContainer) return;
     
-    // Show results section
     elements.newsResults.style.display = 'block';
     
-    // Update results count
-    document.getElementById('resultsTitle').textContent = `Results for "${currentSearchQuery}"`;
+    const resultsTitle = document.getElementById('resultsTitle');
+    if (resultsTitle) resultsTitle.textContent = `Results for "${currentSearchQuery}"`;
+    
     if (elements.resultsCount) {
-        elements.resultsCount.textContent = `${data.total_found} articles found`;
+        elements.resultsCount.textContent = `${data.total_found || 0} articles found`;
     }
     
-    // Clear previous results
     elements.articlesContainer.innerHTML = '';
     
-    if (data.articles.length === 0) {
+    if (!data.articles || data.articles.length === 0) {
         displayNoResults();
         return;
     }
     
-    // Display articles
     data.articles.forEach((article, index) => {
         const articleElement = createArticleElement(article, index);
         elements.articlesContainer.appendChild(articleElement);
     });
     
-    // Scroll to results
     setTimeout(() => {
         elements.newsResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
 }
 
-// Create Article Element
+// Create Article Card
 function createArticleElement(article, index) {
     const div = document.createElement('div');
     div.className = 'article-card';
     
-    const complexityClass = article.analysis.complexity.toLowerCase();
-    const publishedDate = new Date(article.original.publishedAt).toLocaleDateString();
+    const complexity = article.analysis?.complexity || 'medium';
+    const publishedDate = article.original?.publishedAt ? 
+        new Date(article.original.publishedAt).toLocaleDateString() : 'Recently';
     
     div.innerHTML = `
         <div class="article-header">
-            <h4 class="article-title">${article.original.title}</h4>
+            <h4 class="article-title">${article.original?.title || 'Untitled'}</h4>
             <div class="article-meta">
-                <span class="article-source">${article.original.source}</span>
+                <span class="article-source">${article.original?.source || 'Unknown'}</span>
                 <span class="article-date">${publishedDate}</span>
-                <span class="complexity-badge ${complexityClass}">${article.analysis.complexity}</span>
+                <span class="complexity-badge ${complexity}">${complexity.toUpperCase()}</span>
             </div>
         </div>
         
         <div class="article-content">
             <div class="article-preview">
                 <h5>Simplified Summary:</h5>
-                <p>${article.simplified.content.substring(0, 200)}...</p>
+                <p>${article.simplified?.summary || article.simplified?.content?.substring(0, 200) + '...' || 'No summary available'}</p>
             </div>
             
             <div class="article-stats">
                 <div class="stat">
-                    <span class="stat-value">${article.analysis.jargon_count}</span>
+                    <span class="stat-value">${article.analysis?.jargon_count || 0}</span>
                     <span class="stat-label">Terms Simplified</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-value">${article.analysis.readability_score}</span>
+                    <span class="stat-value">${article.analysis?.readability_score || 0}</span>
                     <span class="stat-label">Readability Score</span>
                 </div>
             </div>
@@ -292,31 +232,27 @@ function createArticleElement(article, index) {
         
         <div class="article-actions">
             <button class="btn-secondary" onclick="openArticleModal(${index})">View Details</button>
-            <button class="btn-primary" onclick="openOriginalArticle('${article.original.url}')">Read Original</button>
+            ${article.original?.url ? 
+                `<button class="btn-primary" onclick="openOriginalArticle('${article.original.url}')">Read Original</button>` :
+                '<button class="btn-primary" disabled>URL Not Available</button>'
+            }
         </div>
     `;
-    
-    // Store article data for modal
-    div.setAttribute('data-article', JSON.stringify(article));
     
     return div;
 }
 
-// Display No Results
+// No Results Display
 function displayNoResults() {
     if (elements.articlesContainer) {
         elements.articlesContainer.innerHTML = `
             <div class="no-results">
                 <div class="no-results-icon">🔍</div>
                 <h3>No Articles Found</h3>
-                <p>We couldn't find any recent news for "${currentSearchQuery}". Try different keywords or check back later.</p>
+                <p>We couldn't find any recent news for "${currentSearchQuery}".</p>
                 <button class="btn-primary" onclick="elements.newsSearchInput.focus()">Try Another Search</button>
             </div>
         `;
-    }
-    
-    if (elements.resultsCount) {
-        elements.resultsCount.textContent = '0 articles found';
     }
 }
 
@@ -330,40 +266,33 @@ async function simplifyCustomText() {
     }
     
     if (text.length > 10000) {
-        showToast('Text is too long. Please keep it under 10,000 characters.', 'error');
+        showToast('Text too long. Max 10,000 characters.', 'error');
         return;
     }
     
-    showLoadingOverlay(true, 'Simplifying Text...', 'Analyzing and simplifying your financial text...');
+    showLoadingOverlay(true, 'Simplifying Text...', 'Analyzing financial terms...');
     
     try {
         const response = await fetch(`${API_BASE_URL}/api/simplify-text`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 text: text,
                 level: currentSimplificationLevel
             })
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to simplify text');
-        }
+        if (!response.ok) throw new Error('Failed to simplify');
         
         const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
-        }
+        if (data.error) throw new Error(data.error);
         
         displayCustomTextResults(data);
         showToast('Text simplified successfully!', 'success');
         
     } catch (error) {
         console.error('Simplification error:', error);
-        showToast('Failed to simplify text. Please try again.', 'error');
+        showToast('Failed to simplify. Please try again.', 'error');
     } finally {
         showLoadingOverlay(false);
     }
@@ -377,36 +306,24 @@ function displayCustomTextResults(data) {
         <div class="results-header">
             <h3>Simplification Results</h3>
             <div class="results-meta">
-                <div class="complexity-indicator">
-                    <span class="complexity-label">Original Complexity:</span>
-                    <span class="complexity-badge ${data.complexity.toLowerCase()}">${data.complexity}</span>
-                </div>
-                <div class="analysis-stats">
-                    <span class="stat">
-                        <span class="stat-value">${data.jargon_count}</span>
-                        <span class="stat-label">Terms Simplified</span>
-                    </span>
-                    <span class="stat">
-                        <span class="stat-value">${data.readability_score}</span>
-                        <span class="stat-label">Readability Score</span>
-                    </span>
-                </div>
+                <span class="complexity-badge ${data.complexity}">${data.complexity.toUpperCase()}</span>
+                <span>Readability: ${data.readability_score}/100</span>
             </div>
         </div>
 
         <div class="text-comparison">
             <div class="original-text">
                 <div class="text-header">
-                    <h4 class="text-label">Original Text</h4>
-                    <button class="copy-btn" onclick="copyText('${data.original_text}')" title="Copy to clipboard">📋</button>
+                    <h4>Original Text</h4>
+                    <button class="copy-btn" onclick="copyText(\`${data.original_text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">📋</button>
                 </div>
                 <div class="text-content">${data.original_text}</div>
             </div>
 
             <div class="simplified-text">
                 <div class="text-header">
-                    <h4 class="text-label">Simplified Version</h4>
-                    <button class="copy-btn" onclick="copyText('${data.simplified_text}')" title="Copy to clipboard">📋</button>
+                    <h4>Simplified Version</h4>
+                    <button class="copy-btn" onclick="copyText(\`${data.simplified_text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">📋</button>
                 </div>
                 <div class="text-content">${data.simplified_text}</div>
             </div>
@@ -414,7 +331,7 @@ function displayCustomTextResults(data) {
 
         ${data.jargon_detected.length > 0 ? `
         <div class="simplifications-section">
-            <h4>Financial Terms Explained</h4>
+            <h4>Financial Terms Explained (${data.jargon_count})</h4>
             <div class="jargon-explanations">
                 ${data.jargon_detected.map(item => `
                     <div class="jargon-item">
@@ -425,82 +342,64 @@ function displayCustomTextResults(data) {
             </div>
         </div>
         ` : ''}
-
-        ${data.insights.length > 0 ? `
-        <div class="insights-section">
-            <h4>Key Insights</h4>
-            <div class="insights-grid">
-                ${data.insights.map(insight => `
-                    <div class="insight-item">
-                        <div class="insight-title">${insight.title}</div>
-                        <div class="insight-description">${insight.description}</div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-        ` : ''}
     `;
     
     elements.customTextResults.style.display = 'block';
-    
-    // Scroll to results
     setTimeout(() => {
-        elements.customTextResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        elements.customTextResults.scrollIntoView({ behavior: 'smooth' });
     }, 100);
 }
 
 // Modal Functions
-function openArticleModal(articleIndex) {
-    const articleCards = document.querySelectorAll('.article-card');
-    if (articleIndex >= articleCards.length) return;
+function openArticleModal(index) {
+    if (index >= currentArticles.length) return;
     
-    const articleData = JSON.parse(articleCards[articleIndex].getAttribute('data-article'));
+    const article = currentArticles[index];
     
-    // Populate modal with article data
-    document.getElementById('modalTitle').textContent = articleData.original.title;
-    document.getElementById('modalSource').textContent = articleData.original.source;
-    document.getElementById('modalDate').textContent = new Date(articleData.original.publishedAt).toLocaleDateString();
+    document.getElementById('modalTitle').textContent = article.original?.title || 'Untitled';
+    document.getElementById('modalSource').textContent = article.original?.source || 'Unknown';
+    document.getElementById('modalDate').textContent = article.original?.publishedAt ? 
+        new Date(article.original.publishedAt).toLocaleDateString() : 'Recently';
     
-    // Update complexity badge
     const complexityBadge = document.querySelector('#articleModal .complexity-badge');
-    complexityBadge.textContent = articleData.analysis.complexity;
-    complexityBadge.className = `complexity-badge ${articleData.analysis.complexity.toLowerCase()}`;
+    if (complexityBadge) {
+        const complexity = article.analysis?.complexity || 'medium';
+        complexityBadge.textContent = complexity.toUpperCase();
+        complexityBadge.className = `complexity-badge ${complexity}`;
+    }
     
-    // Populate tab content
-    document.getElementById('modalOriginalContent').textContent = articleData.original.content;
-    document.getElementById('modalSimplifiedContent').textContent = articleData.simplified.content;
+    document.getElementById('modalOriginalContent').textContent = 
+        article.original?.content || article.original?.description || 'No content available';
+    document.getElementById('modalSimplifiedContent').textContent = 
+        article.simplified?.content || 'No simplified version available';
     
-    // Update analysis stats
-    document.getElementById('modalJargonCount').textContent = articleData.analysis.jargon_count;
-    document.getElementById('modalReadabilityScore').textContent = articleData.analysis.readability_score;
+    document.getElementById('modalJargonCount').textContent = article.analysis?.jargon_count || 0;
+    document.getElementById('modalReadabilityScore').textContent = article.analysis?.readability_score || 0;
     
-    // Populate jargon list
     const jargonContainer = document.getElementById('modalJargonList');
-    if (articleData.analysis.jargon_detected.length > 0) {
-        jargonContainer.innerHTML = articleData.analysis.jargon_detected.map(item => `
+    if (article.analysis?.jargon_detected?.length > 0) {
+        jargonContainer.innerHTML = article.analysis.jargon_detected.map(item => `
             <div class="jargon-item">
                 <div class="jargon-term">${item.term}${item.count > 1 ? ` (${item.count}x)` : ''}</div>
                 <div class="jargon-explanation">${item.explanation}</div>
             </div>
         `).join('');
     } else {
-        jargonContainer.innerHTML = '<p>No complex financial terms detected.</p>';
+        jargonContainer.innerHTML = '<p>No complex terms detected.</p>';
     }
     
-    // Populate insights
     const insightsContainer = document.getElementById('modalInsights');
-    if (articleData.analysis.insights.length > 0) {
-        insightsContainer.innerHTML = articleData.analysis.insights.map(insight => `
+    if (article.analysis?.insights?.length > 0) {
+        insightsContainer.innerHTML = article.analysis.insights.map(insight => `
             <div class="insight-item">
                 <div class="insight-title">${insight.title}</div>
                 <div class="insight-description">${insight.description}</div>
             </div>
         `).join('');
     } else {
-        insightsContainer.innerHTML = '<p>No specific insights generated.</p>';
+        insightsContainer.innerHTML = '<p>No insights available.</p>';
     }
     
-    // Show modal
     if (elements.articleModal) {
         elements.articleModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -515,20 +414,19 @@ function closeArticleModal() {
 }
 
 function switchModalTab(tabName) {
-    // Remove active from all tabs
     document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.modal-tab-content').forEach(content => content.classList.remove('active'));
     
-    // Add active to selected
     event.target.classList.add('active');
-    document.getElementById(tabName + 'Tab').classList.add('active');
+    const tabContent = document.getElementById(tabName + 'Tab');
+    if (tabContent) tabContent.classList.add('active');
 }
 
 function openOriginalArticle(url) {
     if (url && url !== 'null') {
         window.open(url, '_blank');
     } else {
-        showToast('Original article URL not available', 'info');
+        showToast('Article URL not available', 'info');
     }
 }
 
@@ -542,6 +440,16 @@ function showLoadingOverlay(show, title = 'Loading...', description = 'Please wa
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('progressText').textContent = '0%';
         elements.loadingOverlay.classList.add('show');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
+            if (fill) fill.style.width = `${progress}%`;
+            if (text) text.textContent = `${progress}%`;
+            if (progress >= 90) clearInterval(interval);
+        }, 200);
     } else {
         elements.loadingOverlay.classList.remove('show');
     }
@@ -550,7 +458,7 @@ function showLoadingOverlay(show, title = 'Loading...', description = 'Please wa
 function copyText(text) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(() => {
-            showToast('Text copied to clipboard!', 'success');
+            showToast('Copied to clipboard!', 'success');
         }).catch(() => {
             fallbackCopyText(text);
         });
@@ -564,16 +472,14 @@ function fallbackCopyText(text) {
     textArea.value = text;
     textArea.style.position = 'fixed';
     textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
     document.body.appendChild(textArea);
-    textArea.focus();
     textArea.select();
     
     try {
         document.execCommand('copy');
-        showToast('Text copied to clipboard!', 'success');
+        showToast('Copied to clipboard!', 'success');
     } catch (err) {
-        showToast('Failed to copy text', 'error');
+        showToast('Failed to copy', 'error');
     }
     
     document.body.removeChild(textArea);
@@ -605,7 +511,6 @@ function showToast(message, type = 'info', duration = 4000) {
     
     elements.toastContainer.appendChild(toast);
     
-    // Auto remove after duration
     setTimeout(() => {
         if (toast.parentElement) {
             toast.style.animation = 'slideOutRight 0.3s ease-in';
@@ -614,18 +519,4 @@ function showToast(message, type = 'info', duration = 4000) {
     }, duration);
 }
 
-// Add slideOutRight animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideOutRight {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-    }
-`;
-document.head.appendChild(style);
+console.log('📰 News Simplifier loaded successfully!');
