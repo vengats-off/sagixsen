@@ -87,7 +87,7 @@ def serve_sentiment_app_js():
 def serve_sentiment_css():
     return send_from_directory('static/css', 'sentiment-style.css')
 
-@app.route('/news-app.js')
+@app.route('/news_app.js')
 def serve_news_app_js():
     return send_from_directory('static/js', 'news-app.js')
 
