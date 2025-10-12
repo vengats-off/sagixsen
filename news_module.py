@@ -77,6 +77,235 @@ FINANCIAL_JARGON = {
     'subsidiary': 'company owned by another',
     'bankruptcy': 'unable to pay debts',
     'restructuring': 'changing organization',
+    # Basic Market Terms
+    'market': 'buying and selling of stocks',
+    'stock market': 'place where company shares are bought and sold',
+    'share': 'small piece of company ownership',
+    'shares': 'small pieces of company ownership',
+    'stock': 'piece of company ownership',
+    'stocks': 'pieces of company ownership',
+    'investor': 'person who buys stocks',
+    'investors': 'people who buy stocks',
+    'trading': 'buying and selling',
+    'trader': 'person who buys and sells stocks',
+    
+    # Company Actions
+    'going public': 'company selling shares to public for first time',
+    'ipo': 'company selling shares to public for first time',
+    'launches': 'starts or introduces',
+    'launched': 'started or introduced',
+    'unveils': 'shows or announces',
+    'unveiled': 'showed or announced',
+    'announces': 'tells publicly',
+    'announced': 'told publicly',
+    'introduces': 'brings in something new',
+    'introduced': 'brought in something new',
+    
+    # Financial Performance
+    'ascent': 'going up or growing',
+    'growth': 'increase or expansion',
+    'rise': 'going up',
+    'surge': 'big increase',
+    'rally': 'prices going up fast',
+    'gain': 'profit or increase',
+    'gains': 'profits or increases',
+    'profit': 'money earned after expenses',
+    'profits': 'money earned after expenses',
+    'loss': 'money lost',
+    'losses': 'money lost',
+    'revenue': 'total money earned',
+    'earnings': 'money made',
+    'income': 'money received',
+    
+    # Market Movement
+    'close': 'end of trading day',
+    'closes': 'ends trading day',
+    'closed': 'ended trading day',
+    'settled': 'ended at a price',
+    'lead': 'be first or main',
+    'leads': 'is first or main',
+    'led': 'was first or main',
+    
+    # Specific Terms from Your Articles
+    'fraud': 'cheating or dishonest activity',
+    'decoded': 'explained simply',
+    'litmus test': 'important test to check something',
+    'sector': 'industry or business area',
+    'banking sector': 'all banks together',
+    'pharma': 'medicine companies',
+    'public listings': 'companies selling shares to public',
+    'digital': 'online or electronic',
+    'instant': 'very fast or immediate',
+    'storefront': 'shop or store',
+    'merchants': 'shop owners or sellers',
+    'small businesses': 'small shops and companies',
+    'revolutionising': 'completely changing',
+    'connect': 'link or join',
+    'customers': 'people who buy',
+    
+    # Indian Market Terms
+    'sensex': 'India\'s main stock market number',
+    'nifty': 'India\'s top 50 companies index number',
+    'index': 'number showing market performance',
+    'banking': 'money lending and saving business',
+    'week': '7 days',
+    'strong note': 'good performance',
+    'points': 'units to measure market',
+    'higher': 'more or increased',
+    
+    # Financial Ratios & Metrics
+    'market cap': 'total company value',
+    'market capitalization': 'total company value',
+    'pe ratio': 'how expensive stock is',
+    'p/e ratio': 'how expensive stock is',
+    'eps': 'profit per share',
+    'earnings per share': 'profit for each share',
+    
+    # Investment Terms
+    'dividend': 'company giving money to shareholders',
+    'bull market': 'when prices keep going up',
+    'bear market': 'when prices keep going down',
+    'mutual fund': 'money pooled from many people to invest',
+    'portfolio': 'all investments someone owns',
+    'diversification': 'not putting all eggs in one basket',
+    
+    # Company Structure
+    'merger': 'two companies becoming one',
+    'acquisition': 'one company buying another',
+    'subsidiary': 'company owned by another company',
+    'partnership': 'two companies working together',
+    'collaboration': 'working together',
+    'alliance': 'agreement to work together',
+    'joint venture': 'two companies starting something together',
+    
+    # Financial Health
+    'debt': 'money borrowed',
+    'loan': 'borrowed money',
+    'credit': 'borrowed money',
+    'equity': 'ownership in company',
+    'assets': 'things company owns',
+    'liabilities': 'money company owes',
+    'balance sheet': 'report of what company owns and owes',
+    'cash flow': 'money coming in and going out',
+    
+    # Market Activity
+    'volatility': 'prices moving up and down a lot',
+    'liquidity': 'how easily something can be sold',
+    'volume': 'amount of trading',
+    'bid': 'offer to buy',
+    'ask': 'offer to sell',
+    
+    # Company Size & Type
+    'blue chip': 'big reliable company',
+    'startup': 'new company',
+    'sme': 'small and medium business',
+    'msme': 'micro, small and medium enterprise',
+    'corporation': 'big company',
+    
+    # Government & Policy
+    'rbi': 'Reserve Bank of India, controls money supply',
+    'monetary policy': 'RBI\'s decisions about money',
+    'fiscal policy': 'government tax and spending plans',
+    'interest rate': 'cost of borrowing money',
+    'inflation': 'things becoming more expensive',
+    'gdp': 'total value of country\'s production',
+    'recession': 'when economy is doing badly',
+    
+    # Investment Strategies
+    'buy': 'purchase',
+    'sell': 'give away for money',
+    'hold': 'keep without selling',
+    'long term': 'for many years',
+    'short term': 'for few days or months',
+    
+    # Financial Documents
+    'quarterly results': 'company report every 3 months',
+    'annual report': 'yearly company report',
+    'prospectus': 'document about company',
+    
+    # Risk Terms
+    'risk': 'chance of losing money',
+    'hedge': 'protection against loss',
+    'insurance': 'protection',
+    
+    # Other Business Terms
+    'expansion': 'growing bigger',
+    'restructuring': 'changing how company works',
+    'bankruptcy': 'can\'t pay debts',
+    'layoffs': 'firing employees',
+    'hiring': 'giving jobs',
+    'investment': 'putting money to make more money',
+    'funding': 'getting money',
+    'venture capital': 'money for new companies',
+    
+    # Price Terms
+    'valuation': 'how much company is worth',
+    'overvalued': 'priced too high',
+    'undervalued': 'priced too low',
+    'premium': 'extra cost',
+    'discount': 'reduced price',
+    
+    # Trading Terms
+    'futures': 'agreement to buy later',
+    'options': 'right to buy or sell',
+    'derivatives': 'financial contracts',
+    'commodities': 'basic goods like gold, oil',
+    'bond': 'loan to government or company',
+    
+    # Performance Indicators
+    'profit margin': 'how much profit from sales',
+    'return on investment': 'profit made from investment',
+    'roi': 'profit made from investment',
+    'yield': 'return or profit',
+    
+    # Corporate Actions
+    'share buyback': 'company buying its own shares',
+    'stock split': 'dividing shares to lower price',
+    'bonus shares': 'free shares given to shareholders',
+    'rights issue': 'offering shares to existing shareholders',
+    
+    # Market Conditions
+    'correction': 'market falling 10%',
+    'crash': 'market falling very fast',
+    'boom': 'market doing very well',
+    'bubble': 'prices too high, will fall',
+    'resistance': 'price level hard to cross up',
+    'support': 'price level hard to go below',
+    
+    # Company Events
+    'agm': 'annual general meeting',
+    'board meeting': 'meeting of company leaders',
+    'shareholder': 'person owning shares',
+    'stakeholder': 'anyone affected by company',
+    
+    # Financial Reporting
+    'ebitda': 'earnings before costs',
+    'net profit': 'final profit after all expenses',
+    'gross profit': 'profit before all costs',
+    'operating profit': 'profit from main business',
+    
+    # Analyst Terms
+    'upgrade': 'saying stock will do better',
+    'downgrade': 'saying stock will do worse',
+    'target price': 'expected future price',
+    'rating': 'expert opinion',
+    'recommendation': 'expert advice',
+    'bullish': 'expecting prices to go up',
+    'bearish': 'expecting prices to go down',
+    
+    # Legal & Compliance
+    'sebi': 'Securities and Exchange Board of India, market regulator',
+    'compliance': 'following rules',
+    'regulation': 'official rule',
+    'audit': 'official check of accounts',
+    'disclosure': 'revealing information',
+    
+    # Additional Common Terms
+    'quarter': '3 months',
+    'fiscal year': 'company\'s financial year',
+    'year-on-year': 'compared to last year',
+    'month-on-month': 'compared to last month',
+
 }
 
 
