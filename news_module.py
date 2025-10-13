@@ -13,7 +13,7 @@ NEWS_API_KEY = '7eae47b18ad34858878240cb7a6f139a'
 
 # Configure Google Gemini AI (FREE!)
 # Get your free API key from: https://makersuite.google.com/app/apikey
-GEMINI_API_KEY = 'AIzaSyCxE4PmI_Vfrc5f4eLBShCi2eqwssA7elA'  # Replace with your key
+GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'  # Replace with your key
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize the AI model
@@ -26,53 +26,139 @@ def explain_with_ai(title, description, level='basic'):
     No word replacement - REAL understanding!
     """
     try:
+        # Combine title and description for better context
+        full_text = f"{title}. {description}" if description else title
+        
         # Create prompt based on simplification level
         if level == 'basic':
-            prompt = f"""You are explaining financial news to a common person who knows nothing about finance.
+            prompt = f"""You are explaining news to someone who knows NOTHING about business or finance.
 
-News Title: {title}
-News Description: {description}
+Original news: {full_text}
 
-Explain this news in 2-3 simple sentences that anyone can understand. Use everyday language like you're talking to a friend. Avoid ALL financial jargon. Make it clear what happened and why it matters.
+Your task: Explain what happened in 2-3 SHORT, SIMPLE sentences. 
 
-Example style: "Reliance Industries started a new phone service. They want to compete with other phone companies. This means customers might get cheaper phone plans."
+Rules:
+- Use words a 10-year-old can understand
+- NO business jargon (no "revenue", "market cap", "IPO", etc.)
+- Explain like talking to your grandmother
+- Focus on WHAT happened and WHY it matters to regular people
+- Make it conversational and friendly
 
-Your explanation:"""
+Example:
+If news says "Company's market cap surged after quarterly earnings beat estimates"
+You explain: "The company did better than expected this month. More people wanted to buy their shares. Now the company is worth more money."
+
+Now explain this news in simple words:"""
 
         elif level == 'detailed':
-            prompt = f"""You are explaining financial news to someone learning about business.
+            prompt = f"""You are explaining business news to a high school student.
 
-News Title: {title}
-News Description: {description}
+Original news: {full_text}
 
-Explain this news in 3-4 sentences. Use simple language but you can include some basic financial terms with quick explanations. Make it informative but still easy to understand.
+Your task: Explain in 3-4 sentences using simple but informative language.
+
+Rules:
+- You can use basic business terms BUT explain them quickly
+- Make it educational but easy to follow
+- Connect it to real-world impact
+
+Example:
+"The company announced strong quarterly results. This means they made more money than expected in the last 3 months. Their market cap (total company value) increased. Investors are happy because the company is growing well."
 
 Your explanation:"""
 
         else:  # expert
-            prompt = f"""You are explaining financial news to someone with basic business knowledge.
+            prompt = f"""You are explaining business news to a college business student.
 
-News Title: {title}
-News Description: {description}
+Original news: {full_text}
 
-Explain this news in 3-4 sentences. You can use financial terms but explain the key concepts. Focus on what this means for the company and investors.
+Your task: Explain in 3-4 sentences with business context.
+
+Rules:
+- Use proper financial terms
+- Explain the business implications
+- Mention impact on stakeholders
 
 Your explanation:"""
 
-        # Get AI explanation
-        response = ai_model.generate_content(prompt)
-        explanation = response.text.strip()
+        # Get AI explanation with retry logic
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                response = ai_model.generate_content(
+                    prompt,
+                    generation_config={
+                        'temperature': 0.7,  # More creative but still factual
+                        'top_p': 0.8,
+                        'top_k': 40,
+                        'max_output_tokens': 200,
+                    }
+                )
+                
+                explanation = response.text.strip()
+                
+                # Validate the response
+                if explanation and len(explanation) > 20:
+                    # Check it's not just repeating the original
+                    if explanation.lower() != full_text.lower():
+                        print(f"  ✅ AI generated: {explanation[:100]}...")
+                        return explanation
+                
+                print(f"  ⚠️ AI response too short or same as original, retry {attempt + 1}")
+                
+            except Exception as inner_e:
+                print(f"  ⚠️ AI attempt {attempt + 1} failed: {inner_e}")
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(1)  # Wait before retry
+                continue
         
-        # If AI fails, return a basic explanation
-        if not explanation:
-            return f"{title}. {description}"
-        
-        return explanation
+        # If AI completely fails, create a basic explanation
+        print(f"  ⚠️ AI failed, using fallback explanation")
+        return create_fallback_explanation(title, description, level)
         
     except Exception as e:
-        print(f"AI explanation error: {e}")
-        # Fallback to original text if AI fails
-        return f"{title}. {description}"
+        print(f"❌ AI explanation error: {e}")
+        return create_fallback_explanation(title, description, level)
+
+
+def create_fallback_explanation(title, description, level='basic'):
+    """
+    Create a basic explanation when AI fails
+    Better than just showing the original
+    """
+    if not description:
+        return f"This news is about: {title}"
+    
+    # Basic sentence cleaning
+    text = f"{title}. {description}"
+    
+    # Simple word replacements for common terms
+    replacements = {
+        'market cap': 'company value',
+        'revenue': 'money earned',
+        'profit': 'money made',
+        'loss': 'money lost',
+        'IPO': 'selling shares for the first time',
+        'stock': 'company share',
+        'shares': 'pieces of the company',
+        'investors': 'people who bought shares',
+        'quarterly': 'every 3 months',
+        'fiscal year': 'financial year',
+        'EBITDA': 'earnings',
+        'merger': 'two companies joining',
+        'acquisition': 'one company buying another',
+    }
+    
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+        text = text.replace(old.capitalize(), new.capitalize())
+    
+    # Truncate if too long
+    if len(text) > 300:
+        text = text[:297] + '...'
+    
+    return text
 
 
 def extract_key_terms(text):
@@ -202,28 +288,38 @@ def search_news():
         if not query:
             return jsonify({'error': 'Query is required'}), 400
         
-        print(f"🔍 Searching for: {query} with AI explanation level: {level}")
+        print(f"\n{'='*60}")
+        print(f"🔍 NEW SEARCH: {query}")
+        print(f"📊 Level: {level} | Date Range: {date_range}")
+        print(f"{'='*60}\n")
         
         # Fetch news articles
         articles = fetch_news_from_newsapi(query, date_range)
         
         if not articles:
+            print("⚠️ No articles from NewsAPI, using sample data")
             articles = create_sample_articles(query)
+        else:
+            print(f"✅ Found {len(articles)} articles from NewsAPI")
         
         # Process each article WITH AI
         processed_articles = []
-        for i, article in enumerate(articles[:10]):  # Limit to 10 for AI processing
-            print(f"  📰 Processing article {i+1}/10 with AI...")
+        for i, article in enumerate(articles[:10], 1):
+            print(f"\n📰 Article {i}/10:")
+            print(f"   Title: {article.get('title', 'No title')[:80]}...")
             
             title = article.get('title', '')
             description = article.get('description', '')
             content = article.get('content', description)
             
-            if not title or not description:
+            if not title:
+                print(f"   ❌ Skipped - No title")
                 continue
             
             # 🤖 USE AI TO EXPLAIN THE NEWS!
+            print(f"   🤖 Sending to AI for explanation...")
             ai_explanation = explain_with_ai(title, description, level)
+            print(f"   ✅ AI Response: {ai_explanation[:100]}...")
             
             # Calculate basic complexity
             complexity, readability = calculate_complexity(f"{title} {description}")
@@ -231,7 +327,9 @@ def search_news():
             # Extract key terms using AI (only for detailed/expert)
             key_terms = []
             if level in ['detailed', 'expert']:
+                print(f"   🔍 Extracting key terms...")
                 key_terms = extract_key_terms(f"{title}. {description}")
+                print(f"   ✅ Found {len(key_terms)} key terms")
             
             # Build processed article
             processed_article = {
@@ -257,7 +355,7 @@ def search_news():
                     'insights': [
                         {
                             'title': 'AI Explanation',
-                            'description': f'This news was explained using AI at {level} level'
+                            'description': f'This news was explained using Google Gemini AI at {level} level'
                         }
                     ]
                 }
@@ -265,7 +363,9 @@ def search_news():
             
             processed_articles.append(processed_article)
         
-        print(f"✅ Processed {len(processed_articles)} articles with AI")
+        print(f"\n{'='*60}")
+        print(f"✅ Successfully processed {len(processed_articles)} articles with AI")
+        print(f"{'='*60}\n")
         
         return jsonify({
             'articles': processed_articles,
@@ -278,7 +378,11 @@ def search_news():
         })
         
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"\n{'='*60}")
+        print(f"❌ CRITICAL ERROR: {e}")
+        print(f"{'='*60}\n")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
