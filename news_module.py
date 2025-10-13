@@ -13,7 +13,7 @@ NEWS_API_KEY = '7eae47b18ad34858878240cb7a6f139a'
 
 # Configure Google Gemini AI (FREE!)
 # Get your free API key from: https://makersuite.google.com/app/apikey
-GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'  # Replace with your key
+GEMINI_API_KEY = 'AIzaSyCxE4PmI_Vfrc5f4eLBShCi2eqwssA7elA'  # Replace with your key
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize the AI model
