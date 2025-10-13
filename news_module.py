@@ -95,7 +95,7 @@ Your explanation:"""
                     }
                 )
                 
-                explanation = response.text.strip()
+                explanation = response.parts.strip()
                 
                 # Validate the response
                 if explanation and len(explanation) > 20:
@@ -177,7 +177,7 @@ Format your response EXACTLY like this:
 Your response:"""
 
         response = ai_model.generate_content(prompt)
-        terms_text = response.text.strip()
+        terms_text = response.parts.strip()
         
         # Parse the response
         terms = []
