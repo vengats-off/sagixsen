@@ -95,7 +95,7 @@ Your explanation:"""
                     }
                 )
                 
-                explanation = result.parts.strip()
+                explanation = response.text.strip()
                 
                 # Validate the response
                 if explanation and len(explanation) > 20:
@@ -177,7 +177,7 @@ Format your response EXACTLY like this:
 Your response:"""
 
         response = ai_model.generate_content(prompt)
-        terms_text = result.parts.strip()
+        terms_text = response.text.strip()
         
         # Parse the response
         terms = []
@@ -464,3 +464,4 @@ def health_check():
         'timestamp': datetime.now(timezone.utc).isoformat()
 
     })
+
