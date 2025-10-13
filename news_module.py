@@ -95,7 +95,7 @@ Your explanation:"""
                     }
                 )
                 
-                explanation = response.text.strip()
+                explanation = result.parts.strip()
                 
                 # Validate the response
                 if explanation and len(explanation) > 20:
@@ -177,7 +177,7 @@ Format your response EXACTLY like this:
 Your response:"""
 
         response = ai_model.generate_content(prompt)
-        terms_text = response.text.strip()
+        terms_text = result.parts.strip()
         
         # Parse the response
         terms = []
@@ -462,4 +462,5 @@ def health_check():
         'service': 'ai-news-simplification',
         'ai_model': 'Google Gemini Pro',
         'timestamp': datetime.now(timezone.utc).isoformat()
+
     })
