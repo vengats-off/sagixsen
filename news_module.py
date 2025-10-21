@@ -304,7 +304,7 @@ def search_news():
         
         # Process each article WITH AI
         processed_articles = []
-        for i, article in enumerate(articles[:10], 1):
+        for i, article in enumerate(articles[:5], 1):
             print(f"\n📰 Article {i}/10:")
             print(f"   Title: {article.get('title', 'No title')[:80]}...")
             

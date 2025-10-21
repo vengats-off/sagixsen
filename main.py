@@ -7,7 +7,12 @@ But keeps code in SEPARATE files
 from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
 import os
-
+from news_module import (
+    search_news, 
+    simplify_custom_text, 
+    get_trending_topics,
+    health_check as news_health_check
+)
 # Create main Flask app
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -133,14 +138,6 @@ def api_search_news():
     else:
         return {"error": "News module not loaded"}, 500
 
-@app.route('/api/simplify-text', methods=['POST'])
-def api_simplify_text():
-    """Text simplification endpoint"""
-    if simplify_custom_text:
-        return simplify_custom_text()
-    else:
-        return {"error": "News module not loaded"}, 500
-
 @app.route('/api/trending-topics', methods=['GET'])
 def api_trending_topics():
     """Trending topics endpoint"""
@@ -156,6 +153,10 @@ def api_news_health():
         return news_health_check()
     else:
         return {"status": "unavailable"}, 503
+
+@app.route('/api/trending', methods=['GET'])
+def api_trending():
+    return get_trending_topics()
 @app.route('/api/simplify-text', methods=['POST'])
 def simplify_text_api():
     """Simplify custom text with AI"""
