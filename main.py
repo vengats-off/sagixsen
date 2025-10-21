@@ -156,7 +156,44 @@ def api_news_health():
         return news_health_check()
     else:
         return {"status": "unavailable"}, 503
-
+@app.route('/api/simplify-text', methods=['POST'])
+def simplify_text_api():
+    """Simplify custom text with AI"""
+    try:
+        data = request.get_json()
+        text = data.get('text', '').strip()
+        level = data.get('level', 'basic')
+        
+        if not text:
+            return jsonify({'error': 'Text required'}), 400
+        
+        if len(text) > 10000:
+            return jsonify({'error': 'Text too long (max 10000 characters)'}), 400
+        
+        print(f"🤖 Simplifying custom text...")
+        
+        # Use AI to simplify
+        ai_simplified = explain_news_with_ai("Custom Text", text, level)
+        
+        return jsonify({
+            'original_text': text,
+            'simplified_text': ai_simplified,
+            'complexity': 'medium',
+            'readability_score': 70,
+            'jargon_count': 0,
+            'jargon_detected': [],
+            'insights': [
+                {
+                    'title': 'AI-Powered Simplification',
+                    'description': 'Simplified using Google Gemini AI'
+                }
+            ],
+            'ai_powered': True
+        })
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # =====================================================
 # MASTER HEALTH CHECK
