@@ -1,33 +1,22 @@
 """
-Main Application Entry Point
-Runs both sentiment and news backends as ONE application
-But keeps code in SEPARATE files
+Main Application Entry Point - FIXED VERSION
 """
 
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request, jsonify
 from flask_cors import CORS
 import os
-from news_module import (
-    search_news, 
-    simplify_custom_text, 
-    get_trending_topics,
-    health_check as news_health_check
-)
+
 # Create main Flask app
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# Configure CORS for all routes
+# Configure CORS
 CORS(app, origins=[
     "https://sagixsen.onrender.com",
     "http://localhost:5000",
     "http://127.0.0.1:5000"
 ])
 
-# =====================================================
-# IMPORT SEPARATE MODULES (Keep code separate!)
-# =====================================================
-
-# Import sentiment analysis routes from app.py
+# Import sentiment analysis module
 try:
     from sentiment_module import (
         get_news as sentiment_get_news,
@@ -39,7 +28,7 @@ except ImportError as e:
     sentiment_get_news = None
     sentiment_health_check = None
 
-# Import news simplification routes from news_backend.py
+# Import news simplification module
 try:
     from news_module import (
         search_news,
@@ -57,7 +46,7 @@ except ImportError as e:
 
 
 # =====================================================
-# FRONTEND ROUTES (Pages)
+# FRONTEND ROUTES
 # =====================================================
 
 @app.route('/')
@@ -106,7 +95,7 @@ def serve_logo():
 
 
 # =====================================================
-# SENTIMENT ANALYSIS API ROUTES (from app.py logic)
+# SENTIMENT ANALYSIS API ROUTES
 # =====================================================
 
 @app.route('/api/news', methods=['GET'])
@@ -127,7 +116,7 @@ def api_sentiment_health():
 
 
 # =====================================================
-# NEWS SIMPLIFICATION API ROUTES (from news_backend.py logic)
+# NEWS SIMPLIFICATION API ROUTES
 # =====================================================
 
 @app.route('/api/search-news', methods=['POST'])
@@ -135,6 +124,14 @@ def api_search_news():
     """News search and simplification endpoint"""
     if search_news:
         return search_news()
+    else:
+        return {"error": "News module not loaded"}, 500
+
+@app.route('/api/simplify-text', methods=['POST'])
+def api_simplify_text():
+    """Simplify custom text endpoint"""
+    if simplify_custom_text:
+        return simplify_custom_text()
     else:
         return {"error": "News module not loaded"}, 500
 
@@ -146,6 +143,11 @@ def api_trending_topics():
     else:
         return {"error": "News module not loaded"}, 500
 
+@app.route('/api/trending', methods=['GET'])
+def api_trending():
+    """Alternative trending endpoint"""
+    return api_trending_topics()
+
 @app.route('/api/news-health', methods=['GET'])
 def api_news_health():
     """News health check"""
@@ -154,47 +156,6 @@ def api_news_health():
     else:
         return {"status": "unavailable"}, 503
 
-@app.route('/api/trending', methods=['GET'])
-def api_trending():
-    return get_trending_topics()
-@app.route('/api/simplify-text', methods=['POST'])
-def simplify_text_api():
-    """Simplify custom text with AI"""
-    try:
-        data = request.get_json()
-        text = data.get('text', '').strip()
-        level = data.get('level', 'basic')
-        
-        if not text:
-            return jsonify({'error': 'Text required'}), 400
-        
-        if len(text) > 10000:
-            return jsonify({'error': 'Text too long (max 10000 characters)'}), 400
-        
-        print(f"🤖 Simplifying custom text...")
-        
-        # Use AI to simplify
-        ai_simplified = explain_news_with_ai("Custom Text", text, level)
-        
-        return jsonify({
-            'original_text': text,
-            'simplified_text': ai_simplified,
-            'complexity': 'medium',
-            'readability_score': 70,
-            'jargon_count': 0,
-            'jargon_detected': [],
-            'insights': [
-                {
-                    'title': 'AI-Powered Simplification',
-                    'description': 'Simplified using Google Gemini AI'
-                }
-            ],
-            'ai_powered': True
-        })
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({'error': str(e)}), 500
 
 # =====================================================
 # MASTER HEALTH CHECK
@@ -224,8 +185,6 @@ def master_health_check():
 # =====================================================
 
 if __name__ == '__main__':
-    import os
-    
     port = int(os.environ.get('PORT', 5000))
     
     print("\n" + "="*60)
@@ -248,5 +207,4 @@ if __name__ == '__main__':
     print(f"   GET  /api/health            (Health Check)")
     print("="*60 + "\n")
     
-    # Run the unified application
     app.run(host='0.0.0.0', port=port, debug=False)

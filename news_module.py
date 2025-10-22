@@ -8,22 +8,21 @@ import requests
 import re
 from datetime import datetime, timedelta, timezone
 import google.generativeai as genai
+import time
 
 NEWS_API_KEY = '7eae47b18ad34858878240cb7a6f139a'
 
-# Configure Google Gemini AI (FREE!)
-# Get your free API key from: https://makersuite.google.com/app/apikey
-GEMINI_API_KEY = 'AIzaSyCxE4PmI_Vfrc5f4eLBShCi2eqwssA7elA'  # Replace with your key
+# Configure Google Gemini AI
+GEMINI_API_KEY = 'AIzaSyCxE4PmI_Vfrc5f4eLBShCi2eqwssA7elA'
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize the AI model
-ai_model = genai.GenerativeModel('gemini-2.5-flash')
+ai_model = genai.GenerativeModel('gemini-2.0-flash-exp')
 
 
 def explain_with_ai(title, description, level='basic'):
     """
     Use AI to ACTUALLY explain the news in simple language
-    No word replacement - REAL understanding!
     """
     try:
         # Combine title and description for better context
@@ -31,134 +30,172 @@ def explain_with_ai(title, description, level='basic'):
         
         # Create prompt based on simplification level
         if level == 'basic':
-            prompt = f"""You are explaining news to someone who knows NOTHING about business or finance.
+            prompt = f"""You are a financial news explainer who makes complex news simple for everyone.
 
-Original news: {full_text}
+ORIGINAL NEWS: {full_text}
 
-Your task: Explain what happened in 2-3 SHORT, SIMPLE sentences. 
+YOUR TASK: Explain this news in 4-5 SHORT, SIMPLE sentences that ANYONE can understand.
 
-Rules:
-- Use words a 10-year-old can understand
-- NO business jargon (no "revenue", "market cap", "IPO", etc.)
-- Explain like talking to your grandmother
-- Focus on WHAT happened and WHY it matters to regular people
-- Make it conversational and friendly
+RULES:
+1. Write EXACTLY 4-5 sentences, no more, no less
+2. Use words a 12-year-old can understand
+3. NO business jargon at all (avoid: revenue, market cap, IPO, stocks, shares, equity, etc.)
+4. Instead say: "money earned", "company value", "selling company pieces", etc.
+5. Explain WHAT happened, WHY it matters, and HOW it affects regular people
+6. Be conversational and friendly
+7. Start with "This news is about..."
 
-Example:
-If news says "Company's market cap surged after quarterly earnings beat estimates"
-You explain: "The company did better than expected this month. More people wanted to buy their shares. Now the company is worth more money."
+EXAMPLE:
+Original: "Company's market cap surged 15% after quarterly earnings beat analyst estimates"
+Your explanation: "This news is about a company doing really well. They made more money than experts thought they would. Because of this, more people want to own part of the company. Now the company is worth more money than before. This is good news for anyone who owns a piece of this company."
 
-Now explain this news in simple words:"""
+Now explain this news:"""
 
         elif level == 'detailed':
-            prompt = f"""You are explaining business news to a high school student.
+            prompt = f"""You are explaining business news clearly and simply.
 
-Original news: {full_text}
+ORIGINAL NEWS: {full_text}
 
-Your task: Explain in 3-4 sentences using simple but informative language.
+YOUR TASK: Explain in 4-5 clear sentences.
 
-Rules:
-- You can use basic business terms BUT explain them quickly
-- Make it educational but easy to follow
-- Connect it to real-world impact
+RULES:
+1. Write EXACTLY 4-5 sentences
+2. You can use some business terms BUT explain them immediately in parentheses
+3. Make it educational and easy to follow
+4. Connect it to real-world impact
+5. Start with a clear opening sentence
 
-Example:
-"The company announced strong quarterly results. This means they made more money than expected in the last 3 months. Their market cap (total company value) increased. Investors are happy because the company is growing well."
+EXAMPLE:
+"This company announced strong quarterly results (their performance over 3 months). They made more money than expected, which surprised investors (people who own shares). Their market cap (total company value) increased by 15%. This growth shows the company is doing well and attracting more buyers."
 
-Your explanation:"""
+Now explain this news:"""
 
         else:  # expert
-            prompt = f"""You are explaining business news to a college business student.
+            prompt = f"""You are explaining business news with proper context.
 
-Original news: {full_text}
+ORIGINAL NEWS: {full_text}
 
-Your task: Explain in 3-4 sentences with business context.
+YOUR TASK: Explain in 4-5 informative sentences.
 
-Rules:
-- Use proper financial terms
-- Explain the business implications
-- Mention impact on stakeholders
+RULES:
+1. Write EXACTLY 4-5 sentences
+2. Use proper financial terms
+3. Explain the business implications
+4. Mention impact on stakeholders
+5. Be professional but clear
 
-Your explanation:"""
+Now explain this news:"""
 
         # Get AI explanation with retry logic
-        max_retries = 2
+        max_retries = 3
         for attempt in range(max_retries):
             try:
+                print(f"  🤖 AI Attempt {attempt + 1}/{max_retries}...")
+                
                 response = ai_model.generate_content(
                     prompt,
                     generation_config={
-                        'temperature': 0.7,  # More creative but still factual
-                        'top_p': 0.8,
+                        'temperature': 0.7,
+                        'top_p': 0.9,
                         'top_k': 40,
-                        'max_output_tokens': 200,
+                        'max_output_tokens': 300,
                     }
                 )
                 
-                explanation = response.parts.strip()
+                # FIX: Use response.text instead of response.parts
+                explanation = response.text.strip()
                 
                 # Validate the response
-                if explanation and len(explanation) > 20:
+                if explanation and len(explanation) > 50:
                     # Check it's not just repeating the original
                     if explanation.lower() != full_text.lower():
-                        print(f"  ✅ AI generated: {explanation[:100]}...")
+                        # Count sentences
+                        sentences = explanation.split('.')
+                        sentences = [s.strip() for s in sentences if s.strip()]
+                        
+                        print(f"  ✅ AI generated {len(sentences)} sentences")
+                        print(f"  📝 Preview: {explanation[:100]}...")
                         return explanation
                 
-                print(f"  ⚠️ AI response too short or same as original, retry {attempt + 1}")
+                print(f"  ⚠️ AI response validation failed, retry {attempt + 1}")
                 
             except Exception as inner_e:
-                print(f"  ⚠️ AI attempt {attempt + 1} failed: {inner_e}")
+                print(f"  ❌ AI attempt {attempt + 1} failed: {str(inner_e)}")
                 if attempt < max_retries - 1:
-                    import time
-                    time.sleep(1)  # Wait before retry
+                    time.sleep(2)  # Wait 2 seconds before retry
                 continue
         
-        # If AI completely fails, create a basic explanation
-        print(f"  ⚠️ AI failed, using fallback explanation")
-        return create_fallback_explanation(title, description, level)
+        # If AI completely fails, create a better fallback
+        print(f"  ⚠️ All AI attempts failed, using enhanced fallback")
+        return create_enhanced_fallback(title, description, level)
         
     except Exception as e:
         print(f"❌ AI explanation error: {e}")
-        return create_fallback_explanation(title, description, level)
+        return create_enhanced_fallback(title, description, level)
 
 
-def create_fallback_explanation(title, description, level='basic'):
+def create_enhanced_fallback(title, description, level='basic'):
     """
-    Create a basic explanation when AI fails
-    Better than just showing the original
+    Create a better explanation when AI fails
     """
-    if not description:
-        return f"This news is about: {title}"
+    if not description or description == title:
+        # Only title available
+        parts = title.split()
+        if len(parts) > 15:
+            summary = ' '.join(parts[:15]) + '...'
+        else:
+            summary = title
+        return f"This news is about: {summary}. We're working on getting more details about this story."
     
-    # Basic sentence cleaning
-    text = f"{title}. {description}"
+    # Combine title and description
+    full_text = f"{title}. {description}"
     
-    # Simple word replacements for common terms
+    # Enhanced word replacements
     replacements = {
+        'market capitalization': 'company value',
         'market cap': 'company value',
         'revenue': 'money earned',
-        'profit': 'money made',
+        'profit': 'earnings',
+        'profits': 'earnings',
         'loss': 'money lost',
-        'IPO': 'selling shares for the first time',
+        'losses': 'money lost',
+        'IPO': 'first time selling shares',
         'stock': 'company share',
-        'shares': 'pieces of the company',
+        'stocks': 'company shares',
+        'shares': 'company pieces',
+        'shareholders': 'company owners',
         'investors': 'people who bought shares',
         'quarterly': 'every 3 months',
         'fiscal year': 'financial year',
         'EBITDA': 'earnings',
         'merger': 'two companies joining',
-        'acquisition': 'one company buying another',
+        'acquisition': 'buying another company',
+        'divest': 'selling part of business',
+        'equity': 'ownership',
+        'dividend': 'profit payment',
+        'bear market': 'falling prices',
+        'bull market': 'rising prices',
+        'volatility': 'price changes',
+        'portfolio': 'collection of investments',
     }
     
+    simplified = full_text
     for old, new in replacements.items():
-        text = text.replace(old, new)
-        text = text.replace(old.capitalize(), new.capitalize())
+        simplified = re.sub(r'\b' + re.escape(old) + r'\b', new, simplified, flags=re.IGNORECASE)
     
-    # Truncate if too long
-    if len(text) > 300:
-        text = text[:297] + '...'
+    # Break into sentences and take first 3-4
+    sentences = simplified.split('.')
+    sentences = [s.strip() for s in sentences if s.strip()]
     
-    return text
+    # Take first 4 sentences
+    result_sentences = sentences[:4]
+    result = '. '.join(result_sentences) + '.'
+    
+    # If still too long, truncate
+    if len(result) > 400:
+        result = result[:397] + '...'
+    
+    return result
 
 
 def extract_key_terms(text):
@@ -166,36 +203,42 @@ def extract_key_terms(text):
     Use AI to identify and explain key financial terms
     """
     try:
-        prompt = f"""From this financial text, identify 3-5 important financial terms and explain each in ONE simple sentence.
+        prompt = f"""From this financial text, identify 3-5 important financial terms and explain each in ONE simple sentence (max 15 words).
 
 Text: {text}
 
-Format your response EXACTLY like this:
-1. Term: Simple one-sentence explanation
-2. Term: Simple one-sentence explanation
+Format EXACTLY like this (one term per line):
+Market Cap: The total value of a company
+Revenue: Money a company earns from sales
 
-Your response:"""
+Your response (3-5 terms only):"""
 
-        response = ai_model.generate_content(prompt)
-        terms_text = response.parts.strip()
+        response = ai_model.generate_content(
+            prompt,
+            generation_config={
+                'temperature': 0.5,
+                'max_output_tokens': 200,
+            }
+        )
+        
+        terms_text = response.text.strip()
         
         # Parse the response
         terms = []
         lines = terms_text.split('\n')
         for line in lines:
             if ':' in line:
-                # Extract term and explanation
                 parts = line.split(':', 1)
-                term = parts[0].strip('1234567890. ')
+                term = parts[0].strip().strip('•-*1234567890. ')
                 explanation = parts[1].strip()
-                if term and explanation:
+                if term and explanation and len(explanation) > 10:
                     terms.append({
                         'term': term,
                         'explanation': explanation,
                         'count': 1
                     })
         
-        return terms[:5]  # Return max 5 terms
+        return terms[:5]
         
     except Exception as e:
         print(f"Term extraction error: {e}")
@@ -203,17 +246,18 @@ Your response:"""
 
 
 def calculate_complexity(text):
-    """Calculate text complexity - simplified version"""
+    """Calculate text complexity"""
     if not text:
         return 'low', 50
     
-    # Simple word count based complexity
     words = text.split()
     word_count = len(words)
     
-    # Check for financial keywords
-    financial_keywords = ['market', 'stock', 'revenue', 'profit', 'investment', 
-                          'quarterly', 'earnings', 'capital', 'shares', 'equity']
+    financial_keywords = [
+        'market', 'stock', 'revenue', 'profit', 'investment', 
+        'quarterly', 'earnings', 'capital', 'shares', 'equity',
+        'dividend', 'merger', 'acquisition', 'portfolio', 'IPO'
+    ]
     
     keyword_count = sum(1 for word in words if word.lower() in financial_keywords)
     
@@ -240,7 +284,7 @@ def fetch_news_from_newsapi(query, date_range='1d'):
             'from': from_date,
             'sortBy': 'publishedAt',
             'apiKey': NEWS_API_KEY,
-            'pageSize': 15
+            'pageSize': 10
         }
         
         response = requests.get(url, params=params, timeout=10)
@@ -262,20 +306,16 @@ def create_sample_articles(query):
     now = datetime.now(timezone.utc)
     return [
         {
-            'title': f'{query} shows strong quarterly performance',
-            'description': f'{query} reported better than expected results with revenue growth of 15% and improved market position in the latest quarter.',
-            'content': f'{query} announced quarterly results with revenue growth.',
+            'title': f'{query} reports strong quarterly performance with 15% growth',
+            'description': f'{query} announced better than expected quarterly results with revenue growth of 15% year-over-year and improved market position across key segments.',
+            'content': f'{query} quarterly results exceed expectations with strong growth.',
             'url': 'https://example.com/article1',
             'publishedAt': now.isoformat(),
-            'source': {'name': 'Financial Times'},
+            'source': {'name': 'Financial Express'},
             'urlToImage': None
         }
     ]
 
-
-# =====================================================
-# MAIN API ENDPOINT - WITH AI!
-# =====================================================
 
 def search_news():
     """Main news search with AI-powered simplification"""
@@ -302,11 +342,11 @@ def search_news():
         else:
             print(f"✅ Found {len(articles)} articles from NewsAPI")
         
-        # Process each article WITH AI
+        # Process articles with AI
         processed_articles = []
         for i, article in enumerate(articles[:5], 1):
-            print(f"\n📰 Article {i}/10:")
-            print(f"   Title: {article.get('title', 'No title')[:80]}...")
+            print(f"\n📰 Processing Article {i}/5:")
+            print(f"   Title: {article.get('title', 'No title')[:60]}...")
             
             title = article.get('title', '')
             description = article.get('description', '')
@@ -316,22 +356,23 @@ def search_news():
                 print(f"   ❌ Skipped - No title")
                 continue
             
-            # 🤖 USE AI TO EXPLAIN THE NEWS!
-            print(f"   🤖 Sending to AI for explanation...")
+            # USE AI TO EXPLAIN
+            print(f"   🤖 Sending to AI for {level} level explanation...")
             ai_explanation = explain_with_ai(title, description, level)
-            print(f"   ✅ AI Response: {ai_explanation[:100]}...")
             
-            # Calculate basic complexity
+            # Show what we got
+            print(f"   ✅ Got explanation ({len(ai_explanation)} chars)")
+            print(f"   📝 {ai_explanation[:80]}...")
+            
             complexity, readability = calculate_complexity(f"{title} {description}")
             
-            # Extract key terms using AI (only for detailed/expert)
+            # Extract key terms for detailed/expert levels
             key_terms = []
-            if level in ['detailed', 'expert']:
+            if level in ['detailed', 'expert'] and description:
                 print(f"   🔍 Extracting key terms...")
                 key_terms = extract_key_terms(f"{title}. {description}")
                 print(f"   ✅ Found {len(key_terms)} key terms")
             
-            # Build processed article
             processed_article = {
                 'original': {
                     'title': title,
@@ -344,8 +385,8 @@ def search_news():
                 },
                 'simplified': {
                     'title': title,
-                    'content': ai_explanation,  # AI-generated explanation!
-                    'summary': ai_explanation[:200] + '...' if len(ai_explanation) > 200 else ai_explanation
+                    'content': ai_explanation,
+                    'summary': ai_explanation[:250] + '...' if len(ai_explanation) > 250 else ai_explanation
                 },
                 'analysis': {
                     'complexity': complexity,
@@ -354,17 +395,21 @@ def search_news():
                     'jargon_detected': key_terms,
                     'insights': [
                         {
-                            'title': 'AI Explanation',
-                            'description': f'This news was explained using Google Gemini AI at {level} level'
+                            'title': '✨ AI-Simplified',
+                            'description': f'Explained using Gemini AI at {level} level'
                         }
                     ]
                 }
             }
             
             processed_articles.append(processed_article)
+            
+            # Small delay between API calls to avoid rate limiting
+            if i < len(articles[:5]):
+                time.sleep(1)
         
         print(f"\n{'='*60}")
-        print(f"✅ Successfully processed {len(processed_articles)} articles with AI")
+        print(f"✅ Successfully processed {len(processed_articles)} articles")
         print(f"{'='*60}\n")
         
         return jsonify({
@@ -379,12 +424,11 @@ def search_news():
         
     except Exception as e:
         print(f"\n{'='*60}")
-        print(f"❌ CRITICAL ERROR: {e}")
+        print(f"❌ ERROR: {e}")
         print(f"{'='*60}\n")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-
 
 
 def simplify_custom_text():
@@ -400,16 +444,20 @@ def simplify_custom_text():
         if len(text) > 10000:
             return jsonify({'error': 'Text too long (max 10000 characters)'}), 400
         
-        print(f"🤖 AI simplifying custom text...")
+        print(f"\n🤖 Simplifying custom text ({len(text)} chars)...")
         
-        # Use AI to simplify the text
-        ai_simplified = explain_with_ai("Custom Text", text, level)
+        # Use AI to simplify
+        ai_simplified = explain_with_ai("Custom Financial Text", text, level)
         
         # Extract key terms
-        key_terms = extract_key_terms(text)
+        key_terms = []
+        if level in ['detailed', 'expert']:
+            print(f"🔍 Extracting key terms...")
+            key_terms = extract_key_terms(text)
         
-        # Calculate complexity
         complexity, readability = calculate_complexity(text)
+        
+        print(f"✅ Simplification complete!")
         
         return jsonify({
             'original_text': text,
@@ -420,23 +468,21 @@ def simplify_custom_text():
             'jargon_detected': key_terms,
             'insights': [
                 {
-                    'title': 'AI-Powered Simplification',
-                    'description': 'This text was simplified using Google Gemini AI'
+                    'title': '✨ AI-Powered Simplification',
+                    'description': f'Simplified using Google Gemini AI ({level} level)'
                 },
                 {
-                    'title': 'Complexity Level',
-                    'description': f'Original text complexity: {complexity.upper()}'
-                },
-                {
-                    'title': 'Key Terms Found',
-                    'description': f'Identified {len(key_terms)} important financial terms'
+                    'title': '📊 Original Complexity',
+                    'description': f'{complexity.upper()} complexity text'
                 }
             ],
             'ai_powered': True
         })
         
     except Exception as e:
-        print(f"❌ Error in simplification: {e}")
+        print(f"❌ Simplification error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -448,10 +494,12 @@ def get_trending_topics():
             'TCS',
             'Infosys',
             'HDFC Bank',
+            'ICICI Bank',
             'Sensex',
-            'Nifty',
+            'Nifty 50',
             'Tata Motors',
-            'Stock Market India'
+            'Wipro',
+            'Adani Group'
         ]
     })
 
@@ -461,8 +509,6 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'ai-news-simplification',
-        'ai_model': 'Google Gemini Pro',
+        'ai_model': 'Google Gemini 2.0 Flash',
         'timestamp': datetime.now(timezone.utc).isoformat()
-
     })
-
