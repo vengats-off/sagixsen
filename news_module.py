@@ -34,7 +34,7 @@ def explain_with_ai(title, description, level='basic'):
 
 ORIGINAL NEWS: {full_text}
 
-YOUR TASK: Explain this news in 4-5 SHORT, SIMPLE sentences that ANYONE can understand.
+YOUR TASK: Explain this news in 4-5 SHORT, SIMPLE sentences that ANYONE normal people can understand with example.
 
 RULES:
 1. Write EXACTLY 4-5 sentences, no more, no less
@@ -71,7 +71,7 @@ EXAMPLE:
 Now explain this news:"""
 
         else:  # expert
-            prompt = f"""You are explaining business news with proper context.
+            prompt = f"""You are explaining business news with proper context what is the acutall thing whhataare thinhis going to affect .
 
 ORIGINAL NEWS: {full_text}
 
