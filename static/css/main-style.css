@@ -2,7 +2,7 @@
 :root {
   /* Primary Color Palette */
   --color-black: #000000;
-  --color-black-light: #1a1a1a;
+  --color-black-light: #000000;
   --color-black-medium: #2a2a2a;
   --color-white: #ffffff;
   --color-white-soft: #f8f8f8;
@@ -118,6 +118,14 @@ body {
   gap: var(--space-2);
   transition: transform var(--transition-fast);
   cursor: pointer;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
 }
 
 .logo-img {
