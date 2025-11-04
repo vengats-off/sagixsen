@@ -359,6 +359,16 @@ body {
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+
 .sidebar-link:hover::before {
   width: 3px;
   height: 50%;
