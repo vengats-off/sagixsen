@@ -9,7 +9,7 @@
   --color-black-medium: #2a2a2a;
   --color-charcoal: #1A1A1A;
   --color-dark-gray: #2D2D2D;
-  --color-medium-gray: #555555;
+  --color-medium-gray: 2a2a2a;
   --color-light-gray: #888888;
   --color-white: #FFFFFF;
   --color-red-primary: #dc2626;
@@ -92,12 +92,12 @@ body {
 
 .app-container {
   min-height: 100vh;
-  background: var(--color-background);
+  background: var(--color-black-light);
 }
 
 /* Header - matches your existing design */
 .app-header {
-  background: var(--color-surface);
+  background: var(--color-black-light);
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-12) var(--space-16);
   position: sticky;
