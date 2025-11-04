@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gainura Trading Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main-style.css') }}">
+    <!-- Material Icons - All variants -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Two+Tone" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=table_chart_view" />
+    <!-- Material Symbols - Complete Library (removed icon_names parameter) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
     <!-- Header -->
@@ -114,11 +116,11 @@
             <div class="feature-grid">
                 <div class="feature-card" data-path="/sentiment" onclick="window.location.href='/sentiment'">
                     <div class="feature-icon">
-                        <span class="material-icons">table_chart_view</span>
+                        <span class="material-icons">analytics</span>
                     </div>
                     <div class="feature-content">
-                        <h3 class="feature-title">Sentimental Analysis</h3>
-                        <p class="feature-description">Analyse the News (Postive or Negative) </p>
+                        <h3 class="feature-title">Sentiment Analysis</h3>
+                        <p class="feature-description">Analyze the News (Positive or Negative)</p>
                     </div>
                     <div class="feature-arrow">
                         <span class="material-icons">arrow_forward</span>
@@ -127,11 +129,11 @@
 
                 <div class="feature-card" data-path="/news-simplifier" onclick="window.location.href='/news'">
                     <div class="feature-icon">
-                        <span class="material-icons">news</span>
+                        <span class="material-icons">article</span>
                     </div>
                     <div class="feature-content">
-                        <h3 class="feature-title">News-Simplifier</h3>
-                        <p class="feature-description">Simplifies the Financial news</p>
+                        <h3 class="feature-title">News Simplifier</h3>
+                        <p class="feature-description">Simplifies Financial News</p>
                     </div>
                     <div class="feature-arrow">
                         <span class="material-icons">arrow_forward</span>
