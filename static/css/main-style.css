@@ -90,9 +90,9 @@ body {
   left: 0;
   right: 0;
   height: var(--header-height);
-  background: var(--color-black-light);
+  background: var(--color-black);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-black-light);
+  border-bottom: 1px solid var(--color-black);
   z-index: 1000;
   box-shadow: var(--shadow-md);
 }
