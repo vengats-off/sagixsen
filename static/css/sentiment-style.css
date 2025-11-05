@@ -392,6 +392,7 @@ a:hover {
   align-items: center;
   text-align: center;
   flex-grow: 1;
+  margin-left: -60px;
 }
 
 .app-title {
