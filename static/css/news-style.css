@@ -108,7 +108,6 @@ body {
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   max-width: 1280px;
   margin: 0 auto;
 }
