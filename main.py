@@ -64,7 +64,7 @@ def news_page():
     """News simplification page"""
     return render_template('news.html')
 @app.route('/report')
-def news_page():
+def report_page():
     """Report generator"""
     return render_template('report.html')
 
@@ -99,11 +99,11 @@ def serve_logo():
 
 
 @app.route('/report.js')
-def serve_news_app_js():
+def report_js():
     return send_from_directory('static/js', 'report.js')
 
 @app.route('/report.css')
-def serve_news_css():
+def report_css():
     return send_from_directory('static/css', 'report.css')
 
 # =====================================================
@@ -168,6 +168,23 @@ def api_news_health():
     else:
         return {"status": "unavailable"}, 503
 
+
+
+
+@app.route('/api/generate-report', methods=['POST'])
+def api_generate_report():
+    """Stock report generation endpoint"""
+    from flask import request, jsonify
+    data = request.get_json()
+    symbol = data.get('symbol', '').strip().upper()
+
+    if not symbol:
+        return jsonify({'success': False, 'message': 'Stock symbol is required'}), 400
+
+    return jsonify({
+        'success': False,
+        'message': f'Report generation for {symbol} is coming soon.'
+    })
 
 # =====================================================
 # MASTER HEALTH CHECK
