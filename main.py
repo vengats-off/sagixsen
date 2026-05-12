@@ -98,13 +98,13 @@ def serve_logo():
     return send_from_directory('.', 'logo.png')
 
 
-@app.route('/report.js')
+@app.route('/report-app.js')
 def report_js():
-    return send_from_directory('static/js', 'report.js')
+    return send_from_directory('static/js', 'report-app.js')
 
-@app.route('/report.css')
+@app.route('/report-style.css')
 def report_css():
-    return send_from_directory('static/css', 'report.css')
+    return send_from_directory('static/css', 'report-style.css')
 
 # =====================================================
 # SENTIMENT ANALYSIS API ROUTES
