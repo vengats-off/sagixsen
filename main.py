@@ -63,6 +63,10 @@ def sentiment_page():
 def news_page():
     """News simplification page"""
     return render_template('news.html')
+@app.route('/report')
+def news_page():
+    """Report generator"""
+    return render_template('report.html')
 
 
 # =====================================================
@@ -93,6 +97,14 @@ def serve_news_css():
 def serve_logo():
     return send_from_directory('.', 'logo.png')
 
+
+@app.route('/report.js')
+def serve_news_app_js():
+    return send_from_directory('static/js', 'report.js')
+
+@app.route('/report.css')
+def serve_news_css():
+    return send_from_directory('static/css', 'report.css')
 
 # =====================================================
 # SENTIMENT ANALYSIS API ROUTES
