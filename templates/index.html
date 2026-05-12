@@ -3,459 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockPulse Analytics - AI-Powered Stock Reports</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #000000 0%, #360000 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background:linear-gradient(135deg, #000000 0%, #360000 100%);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            color: #ffffff;
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 30px;
-        }
-
-        label {
-            display: block;
-            color: #ffffff;
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #000000;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .suggestions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .suggestion {
-            background: #f5f5f5;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 13px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .suggestion:hover {
-            background: #000000;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #380000 0%, #000000 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .progress-steps {
-            text-align: left;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 13px;
-            color: #666;
-        }
-
-        .progress-steps div {
-            margin: 8px 0;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .progress-steps div:before {
-            content: '○';
-            position: absolute;
-            left: 0;
-            color: #ccc;
-        }
-
-        .progress-steps div.active:before {
-            content: '●';
-            color: #667eea;
-        }
-
-        .progress-steps div.done:before {
-            content: '✓';
-            color: #28a745;
-        }
-
-        .result {
-            display: none;
-            text-align: center;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-top: 30px;
-        }
-
-        .result.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        .result.success {
-            background: #d4edda;
-            border: 2px solid #28a745;
-        }
-
-        .result.error {
-            background: #f8d7da;
-            border: 2px solid #dc3545;
-        }
-
-        .result-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .result-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .result-message {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .download-btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .download-btn:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #999;
-            font-size: 12px;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-        }
-    </style>
+    <title>Gainura Trading Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main-style.css') }}">
+    <!-- Material Icons - All variants -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Two+Tone" rel="stylesheet">
+    <!-- Material Symbols - Complete Library (removed icon_names parameter) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>GAINURA</h1>
-            <p>AI-Powered Stock Intelligence Reports</p>
-        </div>
-
-        <form id="reportForm">
-            <div class="form-group">
-                <label for="symbol">Enter Stock Symbol (NSE)</label>
-                <input 
-                    type="text" 
-                    id="symbol" 
-                    name="symbol" 
-                    placeholder="e.g., TCS, RELIANCE, INFY" 
-                    required
-                    autocomplete="off"
-                >
-                <div class="suggestions">
-                    <div class="suggestion" data-symbol="TCS">TCS</div>
-                    <div class="suggestion" data-symbol="RELIANCE">RELIANCE</div>
-                    <div class="suggestion" data-symbol="INFY">INFOSYS</div>
-                    <div class="suggestion" data-symbol="HDFCBANK">HDFC BANK</div>
-                    <div class="suggestion" data-symbol="ICICIBANK">ICICI BANK</div>
-                    <div class="suggestion" data-symbol="WIPRO">WIPRO</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                <img src="logo.png" alt="Gainura logo" class="logo-img">
+                    <h1 class="logo-text">Gainura</h1>
                 </div>
             </div>
-
-            <button type="submit" id="submitBtn">
-                Generate Report
-            </button>
-        </form>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <div class="loading-text">Generating your comprehensive stock report...</div>
-            <div class="progress-steps" id="progressSteps">
-                <div id="step1">Fetching live stock data</div>
-                <div id="step2">Analyzing fundamentals</div>
-                <div id="step3">Calculating technical indicators</div>
-                <div id="step4">Running ML predictions</div>
-                <div id="step5">Generating charts</div>
-                <div id="step6">Creating PDF report</div>
+            
+            <div class="header-center">
+                <div class="clock-container">
+                    <span class="material-icons clock-icon">schedule</span>
+                    <div id="live-clock" class="live-clock">--:--:-- --</div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="contact-btn">
+                    <span class="material-icons">mail</span>
+                    <span class="contact-text">Contact</span>
+                </button>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <span class="material-icons">menu</span>
+                </button>
             </div>
         </div>
+    </header>
 
-        <div class="result" id="result">
-            <div class="result-icon" id="resultIcon"></div>
-            <div class="result-title" id="resultTitle"></div>
-            <div class="result-message" id="resultMessage"></div>
-            <a href="#" id="downloadBtn" class="download-btn" style="display:none;">
-                📥 Download Report
-            </a>
-        </div>
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
 
-        <div class="footer">
-            <p>Powered by Angel One API • AWS • Machine Learning</p>
-            <p> Not Financial Advice - For Informational Purposes Only</p>
-        </div>
+    <!-- Main Layout Container -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <h3 class="sidebar-title">Quick Links</h3>
+                <ul class="sidebar-menu">
+                    <li class="sidebar-item">
+                        <a href="https://in.tradingview.com/" target="_blank" class="sidebar-link" title="TradingView Charts">
+                            <span class="material-icons">show_chart</span>
+                            <span class="sidebar-text">TradingView</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://in.investing.com/news/stock-market-news" target="_blank" class="sidebar-link" title="Market News">
+                            <span class="material-icons">article</span>
+                            <span class="sidebar-text">Market News</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://www.moneycontrol.com/markets/global-indices/" target="_blank" class="sidebar-link" title="Global Markets">
+                            <span class="material-icons">public</span>
+                            <span class="sidebar-text">Global Markets</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://www.screener.in/" target="_blank" class="sidebar-link" title="Stock Screener">
+                            <span class="material-icons">filter_list</span>
+                            <span class="sidebar-text">Stock Screener</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://sensibull.com/" target="_blank" class="sidebar-link" title="Options Strategy">
+                            <span class="material-icons">insights</span>
+                            <span class="sidebar-text">Options Strategy</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://www.nseindia.com/option-chain" target="_blank" class="sidebar-link" title="Option Chain">
+                            <span class="material-icons">trending_up</span>
+                            <span class="sidebar-text">Option Chain</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://www.niftyindices.com/reports/historical-data" target="_blank" class="sidebar-link" title="Historical Data">
+                            <span class="material-icons">storage</span>
+                            <span class="sidebar-text">Historical Data</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="https://www.5paisa.com/nifty-50-stocks-list" target="_blank" class="sidebar-link" title="NIFTY 50">
+                            <span class="material-icons">list</span>
+                            <span class="sidebar-text">NIFTY 50</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2 class="page-title">Trading Dashboard</h2>
+                <p class="page-subtitle">Access your favorite trading tools and resources</p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card" data-path="/sentiment" onclick="window.location.href='/sentiment'">
+                    <div class="feature-icon">
+                        <span class="material-icons">analytics</span>
+                    </div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Sentiment Analysis</h3>
+                        <p class="feature-description">Analyze the News (Positive or Negative)</p>
+                    </div>
+                    <div class="feature-arrow">
+                        <span class="material-icons">arrow_forward</span>
+                    </div>
+                </div>
+
+                <div class="feature-card" data-path="/news-simplifier" onclick="window.location.href='/news'">
+                    <div class="feature-icon">
+                        <span class="material-icons">article</span>
+                    </div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">News Simplifier</h3>
+                        <p class="feature-description">Simplifies Financial News</p>
+                    </div>
+                    <div class="feature-arrow">
+                        <span class="material-icons">arrow_forward</span>
+                    </div>
+                </div>
+
+                <div class="feature-card" data-path="/technical">
+                    <div class="feature-icon">
+                        <span class="material-icons">trending_up</span>
+                    </div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Stock Backtest</h3>
+                        <p class="feature-description">Backtest Hammer and Inverted hammer </p>
+                    </div>
+                    <div class="feature-arrow">
+                        <span class="material-icons">arrow_forward</span>
+                    </div>
+                </div>
+
+              <div class="feature-card" data-path="/options">
+                    <div class="feature-icon">
+                        <span class="material-icons">account_balanc</span>
+                    </div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Report Generator</h3>
+                        <p class="feature-description">Create a PDF report for desired stock </p>
+                    </div>
+                    <div class="feature-arrow">
+                        <span class="material-icons">arrow_forward</span>
+                    </div>
+                </div>
+
+                <!-- <div class="feature-card" data-path="/risk">
+                    <div class="feature-icon">
+                        <span class="material-icons">security</span>
+                    </div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Risk Manager</h3>
+                        <p class="feature-description">Calculate and manage your trading risk exposure</p>
+                    </div>
+                    <div class="feature-arrow">
+                        <span class="material-icons">arrow_forward</span>
+                    </div>
+                </div>
+
+                <div class="feature-card" data-path="/alerts">
+                    <div class="feature-icon">
+                        <span class="material-icons">notifications</span>
+                    </div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Market Alerts</h3>
+                        <p class="feature-description">Set custom price and volume alerts for stocks</p>
+                    </div>
+                    <div class="feature-arrow">
+                        <span class="material-icons">arrow_forward</span>
+                    </div> 
+                </div>-->
+            </div>
+        </main> -->
+
+        <!--Quotes Panel -->
+        <aside class="quotes-panel">
+            <div class="quotes-header">
+                <h3 class="quotes-title">Trading Wisdom</h3>
+                <span class="material-icons quotes-icon">format_quote</span>
+            </div>
+            <div class="quotes-content">
+                <div class="quote-item active" id="current-quote">
+                    <blockquote class="quote-text">
+                        "The stock market is filled with individuals who know the price of everything, but the value of nothing."
+                    </blockquote>
+                    <cite class="quote-author">— Philip Fisher</cite>
+                    <span class="quote-category">Investment Philosophy</span>
+                </div>
+            </div>
+            <div class="quotes-controls">
+                <button class="quote-nav-btn" id="prev-quote" aria-label="Previous quote">
+                    <span class="material-icons">chevron_left</span>
+                </button>
+                <div class="quote-indicators" id="quote-indicators">
+                    <!-- Dynamically populated -->
+                </div>
+                <button class="quote-nav-btn" id="next-quote" aria-label="Next quote">
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        </aside>
     </div>
 
-    <script>
-        const form = document.getElementById('reportForm');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
-        const submitBtn = document.getElementById('submitBtn');
-        const symbolInput = document.getElementById('symbol');
+    
 
-        // Suggestion clicks
-        document.querySelectorAll('.suggestion').forEach(btn => {
-            btn.addEventListener('click', () => {
-                symbolInput.value = btn.dataset.symbol;
-                symbolInput.focus();
-            });
-        });
-
-        // Form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const symbol = symbolInput.value.trim().toUpperCase();
-            
-            if (!symbol) {
-                alert('Please enter a stock symbol');
-                return;
-            }
-
-            // Hide result, show loading
-            result.classList.remove('active');
-            loading.classList.add('active');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
-
-            // Animate progress steps
-            animateProgressSteps();
-
-            try {
-                // Call API
-                const response = await fetch('http://localhost:5000/api/generate-report', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        symbol: symbol,
-                        days: 365
-                    })
-                });
-
-                const data = await response.json();
-
-                // Hide loading
-                loading.classList.remove('active');
-
-                if (data.success) {
-                    // Success
-                    showResult('success', 
-                        '', 
-                        'Report Generated Successfully!', 
-                        `Your comprehensive analysis for ${symbol} is ready.`,
-                        data.pdf_url
-                    );
-                } else {
-                    // Error
-                    showResult('error', 
-                        '', 
-                        'Generation Failed', 
-                        data.message
-                    );
-                }
-
-            } catch (error) {
-                loading.classList.remove('active');
-                showResult('error', 
-                    '', 
-                    'Connection Error', 
-                    'Could not connect to server. Make sure the Flask app is running.'
-                );
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Generate Report';
-            }
-        });
-
-        function animateProgressSteps() {
-            const steps = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6'];
-            let currentStep = 0;
-
-            const interval = setInterval(() => {
-                if (currentStep > 0) {
-                    document.getElementById(steps[currentStep - 1]).classList.remove('active');
-                    document.getElementById(steps[currentStep - 1]).classList.add('done');
-                }
-                
-                if (currentStep < steps.length) {
-                    document.getElementById(steps[currentStep]).classList.add('active');
-                    currentStep++;
-                } else {
-                    clearInterval(interval);
-                }
-            }, 3000); // Change step every 3 seconds
-        }
-
-        function showResult(type, icon, title, message, downloadUrl = null) {
-            result.className = `result active ${type}`;
-            document.getElementById('resultIcon').textContent = icon;
-            document.getElementById('resultTitle').textContent = title;
-            document.getElementById('resultMessage').textContent = message;
-
-            const downloadBtn = document.getElementById('downloadBtn');
-            if (downloadUrl) {
-                downloadBtn.href = `http://localhost:5000${downloadUrl}`;
-                downloadBtn.style.display = 'inline-block';
-            } else {
-                downloadBtn.style.display = 'none';
-            }
-        }
-
-        // Auto-uppercase input
-        symbolInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase();
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/main-app.js') }}"></script>
 </body>
 </html>
