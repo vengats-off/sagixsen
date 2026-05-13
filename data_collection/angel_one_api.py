@@ -52,8 +52,6 @@ class AngelOneAPI:
             interval: str = 'ONE_DAY'
     ):
         try:
-            import requests
-            import time
 
             is_valid, symbol_or_msg = validate_stock_symbol(symbol)
 
@@ -68,45 +66,30 @@ class AngelOneAPI:
                 f"Fetching {yf_symbol} from {from_date} to {to_date}"
             )
 
-            # Create browser-like session
-            session = requests.Session()
+            # Prevent future date issues
+            to_date = min(
+                pd.to_datetime(to_date),
+                pd.Timestamp.today()
+            ).strftime('%Y-%m-%d')
 
-            session.headers.update({
-                "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/120.0.0.0 Safari/537.36"
-                )
-            })
-
-            ticker = yf.Ticker(yf_symbol, session=session)
-
-            # Retry logic
-            df = None
-
-            for attempt in range(3):
-                try:
-                    df = ticker.history(
-                        start=from_date,
-                        end=(
-                            pd.to_datetime(to_date)
-                            + timedelta(days=1)
-                        ).strftime('%Y-%m-%d'),
-                        interval='1d',
-                        auto_adjust=False
-                    )
-
-                    if df is not None and not df.empty:
-                        break
-
-                except Exception as e:
-                    logger.warning(
-                        f"Attempt {attempt+1} failed: {str(e)}"
-                    )
-                    time.sleep(2)
+            # Download data directly
+            df = yf.download(
+                yf_symbol,
+                start=from_date,
+                end=(
+                    pd.to_datetime(to_date)
+                    + timedelta(days=1)
+                ).strftime('%Y-%m-%d'),
+                interval='1d',
+                progress=False,
+                auto_adjust=False,
+                threads=False
+            )
 
             if df is None or df.empty:
-                logger.error(f"No data returned for {yf_symbol}")
+                logger.error(
+                    f"No data returned for {yf_symbol}"
+                )
                 return None
 
             # Reset index
