@@ -323,7 +323,7 @@ class StockETLPipeline:
                     macd = EXCLUDED.macd;
                 """
                 
-                from psycopg2.extras import execute_batch
+                from psycopg.extras import execute_batch
                 with self.db.get_connection() as conn:
                     cursor = conn.cursor()
                     execute_batch(cursor, query, technical_indicators, page_size=1000)
