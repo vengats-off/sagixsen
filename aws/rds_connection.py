@@ -57,7 +57,7 @@ class RDSConnection:
         """
         try:
             # Create connection pool
-            self.connection_pool = psycopg2.pool.SimpleConnectionPool(
+            self.connection_pool = psycopg.pool.SimpleConnectionPool(
                 min_conn,
                 max_conn,
                 host=Config.AWS_RDS_HOST,
