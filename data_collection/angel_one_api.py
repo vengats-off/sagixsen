@@ -44,22 +44,19 @@ class AngelOneAPI:
 
         return f"{symbol}.NS"
 
-    def get_historical_data(self, symbol: str, from_date: str,
-                            to_date: str, interval: str = 'ONE_DAY') -> Optional[pd.DataFrame]:
-        """
-        Fetch historical OHLCV data from Yahoo Finance.
-
-        Args:
-            symbol: NSE symbol like 'TCS', 'INFY'
-            from_date: YYYY-MM-DD
-            to_date: YYYY-MM-DD
-            interval: ignored, always daily
-
-        Returns:
-            DataFrame with columns: timestamp, open, high, low, close, volume, symbol
-        """
+    def get_historical_data(
+            self,
+            symbol: str,
+            from_date: str,
+            to_date: str,
+            interval: str = 'ONE_DAY'
+    ):
         try:
+            import requests
+            import time
+
             is_valid, symbol_or_msg = validate_stock_symbol(symbol)
+
             if not is_valid:
                 logger.error(f"Invalid symbol: {symbol_or_msg}")
                 return None
@@ -67,17 +64,55 @@ class AngelOneAPI:
             symbol = symbol_or_msg
             yf_symbol = self._to_yf_symbol(symbol)
 
-            logger.info(f"Fetching {yf_symbol} from {from_date} to {to_date}")
+            logger.info(
+                f"Fetching {yf_symbol} from {from_date} to {to_date}"
+            )
 
-            ticker = yf.Ticker(yf_symbol)
-            df = ticker.history(start=from_date, end=to_date, interval='1d')
+            # Create browser-like session
+            session = requests.Session()
+
+            session.headers.update({
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/120.0.0.0 Safari/537.36"
+                )
+            })
+
+            ticker = yf.Ticker(yf_symbol, session=session)
+
+            # Retry logic
+            df = None
+
+            for attempt in range(3):
+                try:
+                    df = ticker.history(
+                        start=from_date,
+                        end=(
+                            pd.to_datetime(to_date)
+                            + timedelta(days=1)
+                        ).strftime('%Y-%m-%d'),
+                        interval='1d',
+                        auto_adjust=False
+                    )
+
+                    if df is not None and not df.empty:
+                        break
+
+                except Exception as e:
+                    logger.warning(
+                        f"Attempt {attempt+1} failed: {str(e)}"
+                    )
+                    time.sleep(2)
 
             if df is None or df.empty:
                 logger.error(f"No data returned for {yf_symbol}")
                 return None
 
-            # Rename columns to match existing pipeline
+            # Reset index
             df = df.reset_index()
+
+            # Rename columns
             df = df.rename(columns={
                 'Date': 'timestamp',
                 'Open': 'open',
@@ -87,23 +122,41 @@ class AngelOneAPI:
                 'Volume': 'volume'
             })
 
-            # Keep only needed columns
-            df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
+            # Keep required columns
+            df = df[
+                [
+                    'timestamp',
+                    'open',
+                    'high',
+                    'low',
+                    'close',
+                    'volume'
+                ]
+            ]
+
             df['symbol'] = symbol
 
-            # Ensure timestamp is datetime without timezone
-            df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
+            # Remove timezone
+            df['timestamp'] = pd.to_datetime(
+                df['timestamp']
+            ).dt.tz_localize(None)
 
-            # Sort by date
-            df = df.sort_values('timestamp').reset_index(drop=True)
+            # Sort
+            df = df.sort_values(
+                'timestamp'
+            ).reset_index(drop=True)
 
-            logger.info(f"Fetched {len(df)} records for {symbol}")
+            logger.info(
+                f"Fetched {len(df)} records for {symbol}"
+            )
+
             return df
 
         except Exception as e:
-            logger.error(f"Failed to fetch data for {symbol}: {str(e)}")
+            logger.error(
+                f"Failed to fetch data for {symbol}: {str(e)}"
+            )
             return None
-
     def get_current_price(self, symbol: str) -> Optional[Dict]:
         """Get current price from Yahoo Finance."""
         try:
