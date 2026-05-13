@@ -22,10 +22,10 @@ Usage:
     db.insert_stock_price('TCS', '2024-12-17', 3800, 3850, 3790, 3842, 2500000)
 """
 
-import psycopg2
-import psycopg2.pool
-from psycopg2 import sql
-from psycopg2.extras import RealDictCursor, execute_batch
+import psycopg
+from psycopg import sql
+from psycopg.rows import dict_row
+from psycopg_pool import ConnectionPool
 from typing import List, Dict, Optional, Tuple, Any
 from contextlib import contextmanager
 from backend.config import Config
@@ -312,24 +312,19 @@ class RDSConnection:
             db.bulk_insert_stock_prices(data)
         """
         query = """
-        INSERT INTO stock_prices (symbol, date, open, high, low, close, volume)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (symbol, date) DO UPDATE SET
-            open = EXCLUDED.open,
-            high = EXCLUDED.high,
-            low = EXCLUDED.low,
-            close = EXCLUDED.close,
-            volume = EXCLUDED.volume;
-        """
+            INSERT INTO stock_prices (symbol, date, open, high, low, close, volume)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (symbol, date) DO UPDATE SET
+                open=EXCLUDED.open, high=EXCLUDED.high,
+                low=EXCLUDED.low, close=EXCLUDED.close, volume=EXCLUDED.volume"""
         
         try:
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
-                execute_batch(cursor, query, data, page_size=1000)
-                conn.commit()
-                cursor.close()
-                
-            logger.info(f"Bulk inserted {len(data)} stock price records")
+            with self.connection_pool.connection() as conn:
+                 with conn.cursor() as cur:
+                    cur.executemany(query, data)
+                    conn.commit()
+            logger.info(f"Bulk inserted {len(data)} records")
+           
             
         except Exception as e:
             logger.error(f" Failed to bulk insert: {str(e)}")
@@ -455,21 +450,12 @@ class RDSConnection:
                 GROUP BY symbol'''""")
         """
         try:
-            with self.get_connection() as conn:
-                cursor = conn.cursor(cursor_factory=RealDictCursor)
-                
-                if params:
-                    cursor.execute(query, params)
-                else:
-                    cursor.execute(query)
-                
-                if fetch:
-                    results = cursor.fetchall()
-                    cursor.close()
-                    return [dict(row) for row in results]
-                else:
+            with self.connection_pool.connection() as conn:
+                with conn.cursor(row_factory=dict_row) as cur:
+                    cur.execute(query, params)
+                    if fetch:
+                        return cur.fetchall()
                     conn.commit()
-                    cursor.close()
                     return None
                     
         except Exception as e:
@@ -483,7 +469,7 @@ class RDSConnection:
         Call this when shutting down the application.
         """
         if self.connection_pool:
-            self.connection_pool.closeall()
+            self.connection_pool.close()
             logger.info("All database connections closed")
 
 
