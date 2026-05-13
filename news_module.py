@@ -98,7 +98,7 @@ Now explain this news:"""
                         'temperature': 0.7,
                         'top_p': 0.9,
                         'top_k': 40,
-                        'max_output_tokens': 300,
+                        'max_output_tokens': 600,
                     }
                 )
                 
@@ -386,7 +386,7 @@ def search_news():
                 'simplified': {
                     'title': title,
                     'content': ai_explanation,
-                    'summary': ai_explanation + '...' if len(ai_explanation) > 250 else ai_explanation
+                    'summary': ai_explanation 
                 },
                 'analysis': {
                     'complexity': complexity,
