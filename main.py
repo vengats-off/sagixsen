@@ -185,9 +185,6 @@ def api_news_health():
 
 
 
-@app.route('/report')
-def report_page():
-    return render_template('report.html')
 
 @app.route('/api/generate-report', methods=['POST'])
 def api_generate_report():
