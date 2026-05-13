@@ -23,7 +23,8 @@ Usage:
 """
 
 import psycopg
-from psycopg import pool, sql
+from psycopg_pool  import ConnectionPool
+from psycopg import sql
 from psycopg.extras import RealDictCursor, execute_batch
 from typing import List, Dict, Optional, Tuple, Any
 from contextlib import contextmanager
@@ -57,7 +58,7 @@ class RDSConnection:
         """
         try:
             # Create connection pool
-            self.connection_pool = psycopg2.pool.SimpleConnectionPool(
+            self.connection_pool = psycopg.pool.SimpleConnectionPool(
                 min_conn,
                 max_conn,
                 host=Config.AWS_RDS_HOST,
