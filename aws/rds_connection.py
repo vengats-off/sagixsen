@@ -22,9 +22,9 @@ Usage:
     db.insert_stock_price('TCS', '2024-12-17', 3800, 3850, 3790, 3842, 2500000)
 """
 
-import psycopg2
-from psycopg2 import pool, sql
-from psycopg2.extras import RealDictCursor, execute_batch
+import psycopg
+from psycopg import pool, sql
+from psycopg.extras import RealDictCursor, execute_batch
 from typing import List, Dict, Optional, Tuple, Any
 from contextlib import contextmanager
 from backend.config import Config
