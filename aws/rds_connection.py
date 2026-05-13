@@ -21,7 +21,6 @@ Usage:
     db.create_tables()
     db.insert_stock_price('TCS', '2024-12-17', 3800, 3850, 3790, 3842, 2500000)
 """
-
 import psycopg
 from psycopg import sql
 from psycopg.rows import dict_row
@@ -82,6 +81,8 @@ class RDSConnection:
     
     @contextmanager
     def get_connection(self):
+        with self.connection_pool.connection() as conn:
+             yield conn
         """
         Context manager to get a database connection from pool.
         
@@ -93,13 +94,7 @@ class RDSConnection:
                 cursor = conn.cursor()
                 cursor.execute("SELECT * FROM stock_prices")
         """
-        conn = self.connection_pool.getconn()
-        try:
-            yield conn
-        finally:
-            self.connection_pool.putconn(conn)
-    
-    
+       
     def create_tables(self):
         """
         Create all required database tables if they don't exist.
@@ -364,7 +359,7 @@ class RDSConnection:
         
         try:
             with self.get_connection() as conn:
-                cursor = conn.cursor(cursor_factory=RealDictCursor)
+                cursor = conn.cursor(row_factory=dict_row)
                 cursor.execute(query, params)
                 results = cursor.fetchall()
                 cursor.close()
