@@ -149,7 +149,7 @@ function createSimpleCard(article, index) {
     const source = article.original?.source || 'Unknown source';
     const date = article.original?.publishedAt ? 
         new Date(article.original.publishedAt).toLocaleDateString() : 'Recently';
-    const simplified = article.simplified?.summary || article.simplified?.content || 'No summary';
+    const simplified = article.simplified?.content || article.simplified?.summary || 'No summary';
     const url = article.original?.url;
     
     div.innerHTML = `
