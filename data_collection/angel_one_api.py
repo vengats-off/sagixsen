@@ -36,7 +36,7 @@ class AngelOneAPI:
 
         # Special cases
         special = {
-            'M&M': 'M%26M.NS',
+            'M&M': 'M&M.NS',
             'BAJAJ-AUTO': 'BAJAJ-AUTO.NS',
         }
         if symbol in special:
@@ -93,17 +93,59 @@ class AngelOneAPI:
                 return None
 
             # Reset index
+# Flatten multi-index columns if present
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+
+            # Reset index
             df = df.reset_index()
 
-            # Rename columns
+            # Convert all columns to lowercase
+            df.columns = [str(col).lower() for col in df.columns]
+
+            logger.info(f"Columns after cleanup: {df.columns.tolist()}")
+
+            # Rename date column
+            # Flatten multi-index columns if present
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+
+            # Reset index
+            df = df.reset_index()
+
+            # Convert all columns to lowercase
+            df.columns = [str(col).lower() for col in df.columns]
+
+            logger.info(f"Columns after cleanup: {df.columns.tolist()}")
+
+            # Rename date column
             df = df.rename(columns={
-                'Date': 'timestamp',
-                'Open': 'open',
-                'High': 'high',
-                'Low': 'low',
-                'Close': 'close',
-                'Volume': 'volume'
+                'date': 'timestamp'
             })
+
+            # Validate required columns
+            required_columns = [
+                'timestamp',
+                'open',
+                'high',
+                'low',
+                'close',
+                'volume'
+            ]
+
+            missing_columns = [
+                col for col in required_columns
+                if col not in df.columns
+            ]
+
+            if missing_columns:
+                logger.error(
+                    f"Missing columns: {missing_columns}"
+                )
+                logger.error(
+                    f"Available columns: {df.columns.tolist()}"
+                )
+                return None
 
             # Keep required columns
             df = df[
@@ -117,6 +159,7 @@ class AngelOneAPI:
                 ]
             ]
 
+            # Add symbol column
             df['symbol'] = symbol
 
             # Remove timezone
