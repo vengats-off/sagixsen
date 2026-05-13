@@ -372,7 +372,7 @@
 
             try {
                 // Call API
-                const response = await fetch('http://localhost:5000/api/generate-report', {
+                const response = await fetch('/api/generate-report', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -445,7 +445,7 @@
 
             const downloadBtn = document.getElementById('downloadBtn');
             if (downloadUrl) {
-                downloadBtn.href = `http://localhost:5000${downloadUrl}`;
+                downloadBtn.href = `downloadUrl`;
                 downloadBtn.style.display = 'inline-block';
             } else {
                 downloadBtn.style.display = 'none';
