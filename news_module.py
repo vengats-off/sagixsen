@@ -386,7 +386,7 @@ def search_news():
                 'simplified': {
                     'title': title,
                     'content': ai_explanation,
-                    'summary': ai_explanation[:250] + '...' if len(ai_explanation) > 250 else ai_explanation
+                    'summary': ai_explanation + '...' if len(ai_explanation) > 250 else ai_explanation
                 },
                 'analysis': {
                     'complexity': complexity,
