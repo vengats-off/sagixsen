@@ -480,8 +480,6 @@ class StockReportPipeline:
         return report_data
 
 
-# Initialize pipeline
-pipeline = StockReportPipeline()
 
 
 # ============================================================================
