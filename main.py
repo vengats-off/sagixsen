@@ -44,6 +44,20 @@ except ImportError as e:
     get_trending_topics = None
     news_health_check = None
 
+# Add this block after your news_module imports
+try:
+    from report_module import (
+        generate_report as report_generate,
+        download_report as report_download,
+        health_check as report_health_check
+    )
+    print("✅ Report module loaded")
+except ImportError as e:
+    print(f"⚠️ Warning: Could not load report module: {e}")
+    report_generate = None
+    report_download = None
+    report_health_check = None
+
 
 # =====================================================
 # FRONTEND ROUTES
@@ -171,20 +185,27 @@ def api_news_health():
 
 
 
+@app.route('/report')
+def report_page():
+    return render_template('report.html')
+
 @app.route('/api/generate-report', methods=['POST'])
 def api_generate_report():
-    """Stock report generation endpoint"""
-    from flask import request, jsonify
-    data = request.get_json()
-    symbol = data.get('symbol', '').strip().upper()
+    if report_generate:
+        return report_generate()
+    return {"error": "Report module not loaded"}, 500
 
-    if not symbol:
-        return jsonify({'success': False, 'message': 'Stock symbol is required'}), 400
+@app.route('/api/download-report/<filename>', methods=['GET'])
+def api_download_report(filename):
+    if report_download:
+        return report_download(filename)
+    return {"error": "Report module not loaded"}, 500
 
-    return jsonify({
-        'success': False,
-        'message': f'Report generation for {symbol} is coming soon.'
-    })
+@app.route('/api/report-health', methods=['GET'])
+def api_report_health():
+    if report_health_check:
+        return report_health_check()
+    return {"status": "unavailable"}, 503
 
 # =====================================================
 # MASTER HEALTH CHECK
