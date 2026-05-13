@@ -17,7 +17,7 @@ GEMINI_API_KEY = 'AIzaSyCxE4PmI_Vfrc5f4eLBShCi2eqwssA7elA'
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize the AI model
-ai_model = genai.GenerativeModel('gemini-2.0-flash-exp')
+ai_model = genai.GenerativeModel('gemini-1.5-flash')
 
 
 def explain_with_ai(title, description, level='basic'):
