@@ -26,7 +26,9 @@ def explain_with_ai(title, description, level='basic'):
     """
     try:
         # Combine title and description for better context
-        full_text = f"{title}. {description}" if description else title
+        trimmed_title = title[:200] if len(title) > 200 else title
+        trimmed_desc = description[:400] if description and len(description) > 400 else description
+        full_text = f"{trimmed_title}. {trimmed_desc}" if trimmed_desc else trimmed_title
         
         # Create prompt based on simplification level
         if level == 'basic':
@@ -98,7 +100,7 @@ Now explain this news:"""
                         'temperature': 0.7,
                         'top_p': 0.9,
                         'top_k': 40,
-                        'max_output_tokens': 600,
+                        'max_output_tokens': 1024,
                     }
                 )
                 
