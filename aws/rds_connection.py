@@ -22,10 +22,10 @@ Usage:
     db.insert_stock_price('TCS', '2024-12-17', 3800, 3850, 3790, 3842, 2500000)
 """
 
-import psycopg
-from psycopg_pool  import ConnectionPool
-from psycopg import sql
-from psycopg.extras import RealDictCursor, execute_batch
+import psycopg2
+import psycopg2.pool
+from psycopg2 import sql
+from psycopg2.extras import RealDictCursor, execute_batch
 from typing import List, Dict, Optional, Tuple, Any
 from contextlib import contextmanager
 from backend.config import Config
@@ -58,7 +58,7 @@ class RDSConnection:
         """
         try:
             # Create connection pool
-            self.connection_pool = psycopg.pool.SimpleConnectionPool(
+            self.connection_pool = psycopg2.pool.SimpleConnectionPool(
                 min_conn,
                 max_conn,
                 host=Config.AWS_RDS_HOST,
